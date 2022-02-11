@@ -304,7 +304,7 @@ func RouteGetUsers(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 
 	// Iterate over results and format them in JSON to send as a response to the user
 	for _, result := range results {
-		output, err := json.MarshalIndent(result, "", "    ")
+		output, err := json.MarshalIndent(result["username"], "", "    ")
 		if err != nil {
 			panic(err)
 		}
