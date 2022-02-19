@@ -4,18 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
+	"github.com/rs/cors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
-	"log"
-	"net/http"
-	"os"
-	"time"
 )
 
 type ResponseLogin struct {
@@ -258,6 +260,15 @@ func RouteGetUsers(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	// Set content-type to JSON
 	w.Header().Set("Content-Type", "application/json")
 
+	type Data struct {
+		Username string `bson:"username" json:"username"`
+	}
+
+	type Response struct {
+		Success bool   `json:"Success"`
+		Data    []Data `json:"Data"`
+	}
+
 	// Load the env file
 	err := godotenv.Load("variables.env")
 	if err != nil {
@@ -295,21 +306,27 @@ func RouteGetUsers(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	}
 
 	// Setup a variable for the database results
-	var results []bson.M
+	var data []Data
 
 	// Send all database results to results variable
-	if err = cursor.All(context.TODO(), &results); err != nil {
+	if err = cursor.All(context.TODO(), &data); err != nil {
 		panic(err)
 	}
 
-	// Iterate over results and format them in JSON to send as a response to the user
-	for _, result := range results {
-		output, err := json.MarshalIndent(result["username"], "", "    ")
-		if err != nil {
-			panic(err)
-		}
-		fmt.Fprintf(w, "%s\n", output)
+	// Setup a variable with the ResponseStandard struct
+	response := Response{
+		Success: true,
+		Data:    data,
 	}
+
+	// Marshal into JSON
+	responseJson, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Send success response to user in JSON
+	fmt.Fprintf(w, "%s\n", responseJson)
 }
 
 // Route: New User, for creating a new user, adds user to database, password is hashed. Takes a username and password in the request body
@@ -400,15 +417,16 @@ func RouteNewUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 func main() {
 	// BasicAuth username and password
-	user := "kyle"
-	pass := "bessemer!"
+	// user := "kyle"
+	// pass := "bessemer!"
 
 	// HTTPRouter Settings and Routes
 	router := httprouter.New()
-	router.POST("/login/", BasicAuth(RouteLogin, user, pass))
+	router.POST("/login/", RouteLogin)
 	router.POST("/checktoken/", JWTAuth(RouteCheckToken))
-	router.GET("/getusers/", JWTAuth(RouteGetUsers))
+	router.GET("/getusers/", RouteGetUsers)
 	router.POST("/newuser/", JWTAuth(RouteNewUser))
 
-	log.Fatal(http.ListenAndServe(":8081", router))
+	handler := cors.AllowAll().Handler(router)
+	log.Fatal(http.ListenAndServe(":8081", handler))
 }
