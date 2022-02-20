@@ -1,7 +1,7 @@
 import logo from './opteev_logo.png';
 import React from 'react';
 import './App.css';
-import LoginForm from './LoginForm';
+import LoginForm from './components/LoginForm';
 import Dashboard from './Dashboard';
 import Users from './Users';
 import SignOut from './SignOut';

@@ -551,7 +551,7 @@ func main() {
 	// HTTPRouter Settings and Routes
 	router := httprouter.New()
 	router.POST("/login/", RouteLogin)
-	router.GET("/getusers/", RouteGetUsers)
+	router.GET("/getusers/", JWTAuth(RouteGetUsers))
 	router.POST("/newuser/", JWTAuth(RouteNewUser))
 
 	handler := cors.AllowAll().Handler(router)

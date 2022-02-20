@@ -169,3 +169,17 @@ html {
 	color: #5994FF;
 	font-size: 18px;
 }
+
+/* Add User */
+.add-user {
+	background: #2e363f;
+	border: none;
+	padding: 10px 20px 10px 20px;
+	border-bottom: 3px solid #5994FF;
+	border-radius: 3px;
+	color: #D2E2FF;
+}
+.add-user:hover {
+	background: #3059a2;
+	color:#fff;
+}

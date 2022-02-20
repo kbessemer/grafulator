@@ -1,5 +1,5 @@
 import React from 'react';
-import './App.css';
+import '../App.css';
 import { useNavigate } from "react-router-dom";
 import { Box, LinearProgress } from '@mui/material';
 
@@ -24,6 +24,7 @@ function LoginForm() {
       }).then(response => response.json())
       .then(json => {
         if (json.Success) {
+          localStorage.setItem('session-id', json.Token);
           console.log("Logged In!");
           setIsLoggedIn(true);
           navigate("../dashboard", { replace: true });
