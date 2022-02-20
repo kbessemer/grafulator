@@ -1,3 +1,7 @@
+html {
+	background-color: #282c34;
+}
+
 .App {
   text-align: center;
   color: #fff;
@@ -16,12 +20,11 @@
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: 18px;
   color: white;
 }
 
@@ -152,4 +155,17 @@
 .form-style-7 input[type=file]::file-selector-button:hover{
 	background: #3059a2;
 	color:#fff;
+}
+
+/* Drop Zone */
+#drop_zone {
+	background: #1d1f23;
+	border: 2px dashed #2e363f;
+	width:  600px;
+	height: 300px;
+  }
+
+.drop_zone {
+	color: #5994FF;
+	font-size: 18px;
 }

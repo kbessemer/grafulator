@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 import { useNavigate } from "react-router-dom";
+import { Box, LinearProgress } from '@mui/material';
 
 function LoginForm() {
 
@@ -24,7 +25,6 @@ function LoginForm() {
       .then(json => {
         if (json.Success) {
           console.log("Logged In!");
-          setIsLoginLoading(false);
           setIsLoggedIn(true);
           navigate("../dashboard", { replace: true });
         }
@@ -59,7 +59,11 @@ function LoginForm() {
                 <input type="submit" value="LOGIN" onClick={LoginPost}/>
             </li>
           </ul>
+          {isLoginLoading ? <Box sx={{ width: '100%' }}>
+            <LinearProgress />
+          </Box> : null}
         </form>
+
       </div>
     )
   }

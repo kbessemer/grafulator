@@ -3,16 +3,18 @@ import React from 'react';
 import './App.css';
 import GetUsers from "./GetUsers";
 import UploadFile from "./UploadFile";
+import PermanentDrawerRight from "./Drawer";
 
 
 function Dashboard() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <UploadFile />
-        <h3>User List:</h3>
-        <GetUsers />
-      </header>
+    <div>
+      <div className="App">
+        <header className="App-header">
+          <PermanentDrawerRight />
+          <UploadFile />
+        </header>
+      </div>
     </div>
   );
 }
