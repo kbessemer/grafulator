@@ -7,6 +7,7 @@ function GetUsers() {
     const [userList, setUserList] = React.useState([]);
 
     React.useEffect(() => {
+        localStorage.removeItem('session-id');
         navigate("../", { replace: true });
       }, [])
 

@@ -276,6 +276,13 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		return
 	}
 
+	filter := bson.D{{"username", username}}
+	update := bson.D{{"$set", bson.D{{"LastLogin", time.Now()}}}}
+	_, err = coll.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		panic(err)
+	}
+
 	// Get hashed password from database query result
 	var hashedPassword = result["password"]
 	passwordObject := hashedPassword.(primitive.Binary).Data
@@ -389,7 +396,8 @@ func RouteGetUsers(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	w.Header().Set("Content-Type", "application/json")
 
 	type Data struct {
-		Username string `bson:"username" json:"username"`
+		Username  string    `bson:"username" json:"username"`
+		LastLogin time.Time `bson:"LastLogin" json:"LastLogin"`
 	}
 
 	type Response struct {
@@ -543,6 +551,68 @@ func RouteNewUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fmt.Fprintf(w, "%s\n", output)
 }
 
+// Route: New User, for creating a new user, adds user to database, password is hashed. Takes a username and password in the request body
+func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// Set content-type to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	type DeleteUser struct {
+		Username string `json:"Username"`
+	}
+
+	// Declare a new NewUser struct.
+	var p1 DeleteUser
+
+	// Try to decode the request body into the struct. If there is an error,
+	// respond to the client with the error message and a 400 status code.
+	err := json.NewDecoder(r.Body).Decode(&p1)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Setup username and password variables from request body
+	username := p1.Username
+
+	// Load the env file
+	err = godotenv.Load("variables.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// Get the Mongo DB environment variable
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+	}
+
+	// Connect to the Mongo Database
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		panic(err)
+	}
+
+	// Close the database connection at the end of the function
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+
+	// Set the database name and collection name
+	coll := client.Database("go_project1").Collection("users")
+
+	filter := bson.D{{"username", username}}
+	_, err = coll.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		panic(err)
+	}
+
+	// Send success response to the user in JSON
+	output, _ := json.Marshal(map[string]bool{"Success": true})
+	fmt.Fprintf(w, "%s\n", output)
+}
+
 func main() {
 	// BasicAuth username and password
 	// user := "kyle"
@@ -553,6 +623,7 @@ func main() {
 	router.POST("/login/", RouteLogin)
 	router.GET("/getusers/", JWTAuth(RouteGetUsers))
 	router.POST("/newuser/", JWTAuth(RouteNewUser))
+	router.POST("/deleteuser/", JWTAuth(RouteDeleteUser))
 
 	handler := cors.AllowAll().Handler(router)
 	log.Fatal(http.ListenAndServe(":8081", handler))

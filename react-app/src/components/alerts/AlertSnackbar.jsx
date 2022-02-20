@@ -7,14 +7,16 @@ const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function UserExists(props) {
+export default function AlertSnackbar(props) {
   const [state, setState] = React.useState({
     open: props.open,
     vertical: 'top',
     horizontal: 'right',
+    message: props.message,
+    severity: props.severity
   });
 
-  const { vertical, horizontal, open } = state;
+  const { vertical, horizontal, open, message, severity } = state;
 
   return (
     <Stack spacing={2} sx={{ width: '100%' }}>
@@ -23,8 +25,8 @@ export default function UserExists(props) {
         open={open}
         key={vertical + horizontal}
       >
-        <Alert severity="error" sx={{ width: '100%' }}>
-          User already exists!
+        <Alert severity={severity} sx={{ width: '100%' }}>
+          {message}
         </Alert>
       </Snackbar>
     </Stack>

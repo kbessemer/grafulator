@@ -41,6 +41,10 @@ html {
   }
 }
 
+th, td {
+	padding: 15px;
+  }
+
 /* Custom Form */
 .form-style-7{
   background: #1d1f23;
@@ -170,7 +174,7 @@ html {
 	font-size: 18px;
 }
 
-/* Add User */
+/* User Buttons */
 .add-user {
 	background: #2e363f;
 	border: none;
@@ -182,4 +186,14 @@ html {
 .add-user:hover {
 	background: #3059a2;
 	color:#fff;
+}
+
+.delete-user {
+	background: #2e363f;
+	border: none;
+	padding: 10px 20px 10px 20px;
+	border-bottom: 3px solid #5994FF;
+	border-radius: 3px;
+	color: #D2E2FF;
+	background: url("delete.png") no-repeat center;
 }
