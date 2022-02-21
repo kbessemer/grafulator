@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -160,25 +159,25 @@ func AddToken(token string, username string) {
 	// Load the env file
 	err := godotenv.Load("variables.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		fmt.Println("Error loading .env file")
 	}
 
 	// Get the Mongo DB environment variable
 	uri := os.Getenv("MONGO_URI")
 	if uri == "" {
-		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	// Connect to the Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Close the database connection at the end of the function
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 	}()
 
@@ -196,7 +195,7 @@ func AddToken(token string, username string) {
 		update := bson.D{{"$set", bson.D{{"Username", username}, {"Expiration", expiration}}}}
 		_, err := coll.UpdateOne(context.TODO(), filter, update)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 		return
 	}
@@ -205,7 +204,7 @@ func AddToken(token string, username string) {
 	doc := bson.D{{"Username", username}, {"Token", token}, {"Expiration", expiration}}
 	_, err = coll.InsertOne(context.TODO(), doc)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 	return
 }
@@ -218,25 +217,25 @@ func CheckToken(token string) bool {
 	// Load the env file
 	err := godotenv.Load("variables.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		fmt.Println("Error loading .env file")
 	}
 
 	// Get MongoDB environment variable for connecting to database
 	uri := os.Getenv("MONGO_URI")
 	if uri == "" {
-		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	// Connect go Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Close the database connection at the end of the function call
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 	}()
 
@@ -272,25 +271,25 @@ func GetTokenUsername(token string) string {
 	// Load the env file
 	err := godotenv.Load("variables.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		fmt.Println("Error loading .env file")
 	}
 
 	// Get MongoDB environment variable for connecting to database
 	uri := os.Getenv("MONGO_URI")
 	if uri == "" {
-		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	// Connect go Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Close the database connection at the end of the function call
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 	}()
 
@@ -340,25 +339,25 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Load the env file
 	err = godotenv.Load("variables.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		fmt.Println("Error loading .env file")
 	}
 
 	// Get MongoDB environment variable for connecting to database
 	uri := os.Getenv("MONGO_URI")
 	if uri == "" {
-		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	// Connect go Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Close the database connection at the end of the function call
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 	}()
 
@@ -420,7 +419,7 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	update := bson.D{{"$set", bson.D{{"LastLogin", timeFormat}}}}
 	_, err = coll.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// After verifying user exists, and provided password is correct, create the token
@@ -466,25 +465,25 @@ func RouteGetUsers(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	// Load the env file
 	err := godotenv.Load("variables.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		fmt.Println("Error loading .env file")
 	}
 
 	// Get Mongo DB environment variable
 	uri := os.Getenv("MONGO_URI")
 	if uri == "" {
-		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	// Connect to Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Close the database connection at the end of the function
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 	}()
 
@@ -504,7 +503,7 @@ func RouteGetUsers(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 
 	// Send all database results to results variable
 	if err = cursor.All(context.TODO(), &data); err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Setup a variable with the ResponseStandard struct
@@ -549,25 +548,25 @@ func RouteNewUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Load the env file
 	err = godotenv.Load("variables.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		fmt.Println("Error loading .env file")
 	}
 
 	// Get the Mongo DB environment variable
 	uri := os.Getenv("MONGO_URI")
 	if uri == "" {
-		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	// Connect to the Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Close the database connection at the end of the function
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 	}()
 
@@ -601,7 +600,7 @@ func RouteNewUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	doc := bson.D{{"username", username}, {"password", hashedPassword}, {"LastLogin", "Never"}}
 	_, err = coll.InsertOne(context.TODO(), doc)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Send success response to the user in JSON
@@ -635,25 +634,25 @@ func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	// Load the env file
 	err = godotenv.Load("variables.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		fmt.Println("Error loading .env file")
 	}
 
 	// Get the Mongo DB environment variable
 	uri := os.Getenv("MONGO_URI")
 	if uri == "" {
-		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	// Connect to the Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Close the database connection at the end of the function
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 	}()
 
@@ -663,7 +662,7 @@ func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	filter := bson.D{{"username", username}}
 	_, err = coll.DeleteOne(context.TODO(), filter)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Send success response to the user in JSON
@@ -723,25 +722,25 @@ func RouteMyPassword(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	// Load the env file
 	err = godotenv.Load("variables.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		fmt.Println("Error loading .env file")
 	}
 
 	// Get MongoDB environment variable for connecting to database
 	uri := os.Getenv("MONGO_URI")
 	if uri == "" {
-		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
 	// Connect go Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Close the database connection at the end of the function call
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 	}()
 
@@ -786,7 +785,7 @@ func RouteMyPassword(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	update := bson.D{{"$set", bson.D{{"password", hashedPassword}}}}
 	_, err = coll.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Send success response to the user in JSON
@@ -812,19 +811,24 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	io.Copy(f, file)
 	w.Header().Set("Content-Type", "application/json")
 
-	type MyData struct {
+	type MyCSVLine struct {
 		Label           string   `json:"label"`
 		Data            []string `json:"data"`
 		BorderColor     string   `json:"borderColor"`
 		BackgroundColor string   `json:"backgroundColor"`
 	}
 
-	type MyFile struct {
-		Success bool     `json:"Success"`
-		Labels  []string `json:"labels"`
-		Data    []MyData `json:"data"`
+	type MyData struct {
+		Labels []string    `json:"labels"`
+		Data   []MyCSVLine `json:"data"`
 	}
 
+	type MyFile struct {
+		Success bool   `json:"Success"`
+		Data    MyData `json:"data"`
+	}
+
+	var myCSVLine MyCSVLine
 	var myData MyData
 	var myFile MyFile
 
@@ -833,7 +837,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// open file
 	fi, err := os.Open(path)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	// remember to close the file at the end of the program
@@ -854,28 +858,155 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		if i == 0 {
 			for j, field := range line {
 				if j != 0 {
-					myFile.Labels = append(myFile.Labels, field)
+					myData.Labels = append(myData.Labels, field)
 				}
 			}
 		} else {
 			for j, field := range line {
 				if j == 0 {
-					myData.Label = field
+					myCSVLine.Label = field
 				} else {
-					myData.Data = append(myData.Data, field)
+					myCSVLine.Data = append(myCSVLine.Data, field)
 				}
 			}
-			myData.BorderColor = colors[i]
-			myData.BackgroundColor = colors[i]
+			myCSVLine.BorderColor = colors[i]
+			myCSVLine.BackgroundColor = colors[i]
 		}
-		myFile.Data = append(myFile.Data, myData)
-		myData.Data = []string{}
+		myData.Data = append(myData.Data, myCSVLine)
+		myCSVLine.Data = []string{}
 	}
 
+	myFile.Data = myData
 	myFile.Success = true
+
+	// Load the env file
+	err = godotenv.Load("variables.env")
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
+	// Get the Mongo DB environment variable
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+	}
+
+	// Connect to the Mongo Database
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Close the database connection at the end of the function
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	// Set the database name and collection name
+	coll := client.Database("go_project1").Collection("graphs")
+
+	// Last Login Time
+	now := time.Now()
+	timeFormat := fmt.Sprint(now.Month(), now.Day(), now.Year(), now.Hour(), ":", now.Minute())
+
+	// Insert the user into the database with the hashed password
+	doc := bson.D{{"Timestamp", timeFormat}, {"GraphData", myData}}
+	_, err = coll.InsertOne(context.TODO(), doc)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	// Marshal into JSON
 	responseJson, err := json.Marshal(myFile)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Send success response to user in JSON
+	fmt.Fprintf(w, "%s\n", responseJson)
+}
+
+// Route: Get Users, for getting a list of users
+func RouteGetGraphs(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// Set content-type to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	type MyCSVLine struct {
+		Label           string   `bson:"label" json:"label"`
+		Data            []string `bson:"data" json:"data"`
+		BorderColor     string   `bson:"borderColor" json:"borderColor"`
+		BackgroundColor string   `bson:"backgroundColor" json:"backgroundColor"`
+	}
+
+	type MyData2 struct {
+		Labels []string    `bson:"labels" json:"labels"`
+		Data   []MyCSVLine `bson:"data" json:"data"`
+	}
+
+	type MyData struct {
+		Timestamp string    `bson:"Timestamp" json:"Timestamp"`
+		GraphData []MyData2 `bson:"GraphData" json:"GraphData"`
+	}
+
+	type Response struct {
+		Success bool     `json:"Success"`
+		Data    []MyData `json:"Data"`
+	}
+
+	// Load the env file
+	err := godotenv.Load("variables.env")
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
+	// Get Mongo DB environment variable
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+	}
+
+	// Connect to Mongo Database
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Close the database connection at the end of the function
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	// Select the database name and collection name
+	coll := client.Database("go_project1").Collection("graphs")
+
+	// Query the database for the user list
+	cursor, err := coll.Find(context.TODO(), bson.D{})
+	// If no documents were found, send a response and return
+	if err == mongo.ErrNoDocuments {
+		fmt.Printf("No documents were found")
+		return
+	}
+
+	// Setup a variable for the database results
+	var data []MyData
+
+	// Send all database results to results variable
+	if err = cursor.All(context.TODO(), &data); err != nil {
+		fmt.Println(err)
+	}
+
+	// Setup a variable with the ResponseStandard struct
+	response := Response{
+		Success: true,
+		Data:    data,
+	}
+
+	// Marshal into JSON
+	responseJson, err := json.Marshal(response)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -897,7 +1028,8 @@ func main() {
 	router.POST("/deleteuser/", JWTAuth(RouteDeleteUser))
 	router.POST("/mypassword/", JWTAuth(RouteMyPassword))
 	router.POST("/upload/", JWTAuth(RouteUpload))
+	router.GET("/graphs/", RouteGetGraphs)
 
 	handler := cors.AllowAll().Handler(router)
-	log.Fatal(http.ListenAndServe(":8081", handler))
+	fmt.Println(http.ListenAndServe(":8081", handler))
 }

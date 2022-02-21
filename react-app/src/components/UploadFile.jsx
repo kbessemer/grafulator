@@ -49,7 +49,7 @@ function UploadFile() {
         }).then(response => response.json())
         .then(
           (result) => {
-            DrawGraph(result.data, result.labels);
+            DrawGraph(result.data.data, result.data.labels);
             setIsUploaded(true);
           },
           // Note: it's important to handle errors here
