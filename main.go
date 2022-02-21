@@ -385,17 +385,6 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		return
 	}
 
-	// Last Login Time
-	now := time.Now()
-	timeFormat := fmt.Sprint(now.Month(), now.Day(), now.Year(), now.Hour(), ":", now.Minute())
-
-	filter := bson.D{{"username", username}}
-	update := bson.D{{"$set", bson.D{{"LastLogin", timeFormat}}}}
-	_, err = coll.UpdateOne(context.TODO(), filter, update)
-	if err != nil {
-		panic(err)
-	}
-
 	// Get hashed password from database query result
 	var hashedPassword = result["password"]
 	passwordObject := hashedPassword.(primitive.Binary).Data
@@ -418,6 +407,17 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		// Send error response to user in JSON
 		fmt.Fprintf(w, "%s\n", responseJson)
 		return
+	}
+
+	// Last Login Time
+	now := time.Now()
+	timeFormat := fmt.Sprint(now.Month(), now.Day(), now.Year(), now.Hour(), ":", now.Minute())
+
+	filter := bson.D{{"username", username}}
+	update := bson.D{{"$set", bson.D{{"LastLogin", timeFormat}}}}
+	_, err = coll.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		panic(err)
 	}
 
 	// After verifying user exists, and provided password is correct, create the token
