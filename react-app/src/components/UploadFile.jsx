@@ -27,6 +27,7 @@ function UploadFile() {
   const [graphDataFinal, setGraphDataFinal] = React.useState(null);
   const [graphLabels, setGraphLabels] = React.useState(null);
   const [isUploaded, setIsUploaded] = React.useState(false);
+  const [graphList, setGraphList] = React.useState([]);
   var graphDataSets = [];
 
   function dropHandler(ev) {
@@ -76,14 +77,54 @@ function UploadFile() {
     setGraphLabels(labels);
     console.log(data);
     for (var x in data) {
-      if (x != 0) {
-        console.log(x)
-        console.log(data[x].label)
-        graphDataSets.push({ id: x, label: data[x].label, data: data[x].data, borderColor: data[x].borderColor, backgroundColor: data[x].backgroundColor })
-      }
+      graphDataSets.push({ id: x, label: data[x].label, data: data[x].data, borderColor: data[x].borderColor, backgroundColor: data[x].backgroundColor })
     }
     setGraphDataFinal(graphDataSets);
-    console.log(graphDataFinal);
+  }
+
+  React.useEffect(() => {
+    GetGraphList();
+  }, [])
+
+  function GetGraphList() {
+    fetch("http://192.168.1.94:8081/getgraphs", {
+        headers: {
+          'Authorization': localStorage.getItem('session-id')
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      })
+        .then(res => res.json())
+        .then(
+          (result) => {
+            setGraphList(result.Data);
+          },
+          // Note: it's important to handle errors here
+          // instead of a catch() block so that we don't swallow
+          // exceptions from actual bugs in components.
+          (error) => {
+            console.log(error);
+          }
+        )
+  }
+
+  function ViewPastGraph(id) {
+    var postBody = {
+      ID: id,
+    };
+    fetch('http://192.168.1.94:8081/graph', {
+      method: 'post',
+      body: JSON.stringify(postBody),
+      headers: {
+        'Authorization': localStorage.getItem('session-id')
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }).then(response => response.json())
+    .then(json => {
+      if (json.Success) {
+        DrawGraph(json.Data.GraphData.data, json.Data.labels);
+        setIsUploaded(true);
+      }
+    });
   }
 
   return (
@@ -91,7 +132,6 @@ function UploadFile() {
       {isUploaded ? null : <div id="drop_zone" onDrop={dropHandler} onDragOver={dragOverHandler}>
         <p className="drop_zone">Drag one or more files to upload and generate a graph</p>
       </div>}
-      <br></br>
         {isUploaded ? <div className="graph-area"><Line
           datasetIdKey='myLine'
           data={{
@@ -99,6 +139,18 @@ function UploadFile() {
             datasets: graphDataFinal,
           }}
         /></div> : null}
+        <br></br>
+        {isUploaded ? null : <table id="GraphTable">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>View</th>
+              </tr>
+            </thead>
+            <tbody>
+              {graphList.map((graph, index) => { return ( <tr key={index}><td>{graph.Timestamp}</td><td><a onClick={() => ViewPastGraph(graph._id)}>View</a></td></tr>)})}
+            </tbody>
+          </table>}
     </div>
     )
 }

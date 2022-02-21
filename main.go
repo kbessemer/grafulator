@@ -872,7 +872,9 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			myCSVLine.BorderColor = colors[i]
 			myCSVLine.BackgroundColor = colors[i]
 		}
-		myData.Data = append(myData.Data, myCSVLine)
+		if i != 0 {
+			myData.Data = append(myData.Data, myCSVLine)
+		}
 		myCSVLine.Data = []string{}
 	}
 
@@ -940,19 +942,24 @@ func RouteGetGraphs(w http.ResponseWriter, r *http.Request, p httprouter.Params)
 		BackgroundColor string   `bson:"backgroundColor" json:"backgroundColor"`
 	}
 
-	type MyData2 struct {
+	type GraphData struct {
 		Labels []string    `bson:"labels" json:"labels"`
 		Data   []MyCSVLine `bson:"data" json:"data"`
 	}
 
 	type MyData struct {
-		Timestamp string    `bson:"Timestamp" json:"Timestamp"`
-		GraphData []MyData2 `bson:"GraphData" json:"GraphData"`
+		Timestamp string      `bson:"Timestamp" json:"Timestamp"`
+		GraphData []GraphData `bson:"GraphData" json:"GraphData"`
+	}
+
+	type TempData struct {
+		ID        primitive.ObjectID `bson:"_id" json:"_id"`
+		Timestamp string             `bson:"Timestamp" json:"Timestamp"`
 	}
 
 	type Response struct {
-		Success bool     `json:"Success"`
-		Data    []MyData `json:"Data"`
+		Success bool       `json:"Success"`
+		Data    []TempData `json:"Data"`
 	}
 
 	// Load the env file
@@ -992,7 +999,7 @@ func RouteGetGraphs(w http.ResponseWriter, r *http.Request, p httprouter.Params)
 	}
 
 	// Setup a variable for the database results
-	var data []MyData
+	var data []TempData
 
 	// Send all database results to results variable
 	if err = cursor.All(context.TODO(), &data); err != nil {
@@ -1015,6 +1022,103 @@ func RouteGetGraphs(w http.ResponseWriter, r *http.Request, p httprouter.Params)
 	fmt.Fprintf(w, "%s\n", responseJson)
 }
 
+// Route: New User, for creating a new user, adds user to database, password is hashed. Takes a username and password in the request body
+func RouteGetGraph(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// Set content-type to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	type NewGraph struct {
+		ID string `json:"ID"`
+	}
+
+	type Response struct {
+		Success bool   `json:"Success"`
+		Data    bson.M `json:"Data"`
+	}
+
+	// Declare a new NewUser struct.
+	var p1 NewGraph
+
+	// Try to decode the request body into the struct. If there is an error,
+	// respond to the client with the error message and a 400 status code.
+	err := json.NewDecoder(r.Body).Decode(&p1)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Setup username and password variables from request body
+	graphID := p1.ID
+	graphObjID, err := primitive.ObjectIDFromHex(graphID)
+
+	// Load the env file
+	err = godotenv.Load("variables.env")
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
+	// Get the Mongo DB environment variable
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+	}
+
+	// Connect to the Mongo Database
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Close the database connection at the end of the function
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	// Set the database name and collection name
+	coll := client.Database("go_project1").Collection("graphs")
+
+	// Setup a result variable to check if the user already exists in the database
+	var result bson.M
+
+	// Query the database to see if the user already exists
+	err = coll.FindOne(context.TODO(), bson.D{{"_id", graphObjID}}).Decode(&result)
+	// Send error response if the user exists
+	if err == mongo.ErrNoDocuments {
+		response := ResponseError{
+			Success: false,
+			Error:   "Graph not found",
+		}
+
+		// Marshal into JSON
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Send error response to the user in JSON, then return
+		fmt.Fprintf(w, "%s\n", responseJson)
+		return
+	}
+
+	// Setup a variable with the ResponseStandard struct
+	response := Response{
+		Success: true,
+		Data:    result,
+	}
+
+	// Marshal into JSON
+	responseJson, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Send error response to the user in JSON, then return
+	fmt.Fprintf(w, "%s\n", responseJson)
+	return
+}
+
 func main() {
 	// BasicAuth username and password
 	user := "kyle"
@@ -1028,7 +1132,8 @@ func main() {
 	router.POST("/deleteuser/", JWTAuth(RouteDeleteUser))
 	router.POST("/mypassword/", JWTAuth(RouteMyPassword))
 	router.POST("/upload/", JWTAuth(RouteUpload))
-	router.GET("/graphs/", RouteGetGraphs)
+	router.GET("/getgraphs/", JWTAuth(RouteGetGraphs))
+	router.POST("/graph/", JWTAuth(RouteGetGraph))
 
 	handler := cors.AllowAll().Handler(router)
 	fmt.Println(http.ListenAndServe(":8081", handler))

@@ -14,9 +14,7 @@ function App() {
       <div className="App">
         <header className="App-header">
           <img src={logo} width="470" height="85" alt="logo" />
-        </header>
-        <body className="App-header">
-        <p> </p>
+          <p> </p>
           <Routes>
             <Route path="/" element={<LoginForm />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -24,7 +22,7 @@ function App() {
             <Route path="/mypassword" element={<MyPassword />} />
             <Route path="/signout" element={<SignOut />} />
           </Routes>
-        </body>
+        </header>
       </div>
     </Router>
   );
