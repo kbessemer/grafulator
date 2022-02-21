@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -819,9 +820,68 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	type MyFile struct {
-		Labels []string `json:"labels"`
-		Data   []MyData `json:"data"`
+		Success bool     `json:"Success"`
+		Labels  []string `json:"labels"`
+		Data    []MyData `json:"data"`
 	}
+
+	var myData MyData
+	var myFile MyFile
+
+	path := "uploads/" + handler.Filename
+
+	// open file
+	fi, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// remember to close the file at the end of the program
+	defer f.Close()
+
+	// read csv values using csv.Reader
+	csvReader := csv.NewReader(fi)
+	data, err := csvReader.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	colors := []string{"#00ff12", "#f6ff00", "#ff0000", "#001eff", "#ea00ff", "#ff9600"}
+
+	for i, line := range data {
+		if i == 0 {
+			for j, field := range line {
+				if j == 0 {
+
+				} else {
+					myFile.Labels = append(myFile.Labels, field)
+				}
+			}
+		} else {
+			for j, field := range line {
+				if j == 0 {
+					myData.Label = field
+				} else {
+					myData.Data = append(myData.Data, field)
+				}
+			}
+			myData.BorderColor = colors[i]
+			myData.BackgroundColor = colors[i]
+		}
+
+		myFile.Data = append(myFile.Data, myData)
+	}
+
+	myFile.Success = true
+
+	// Marshal into JSON
+	responseJson, err := json.Marshal(myFile)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Send success response to user in JSON
+	fmt.Fprintf(w, "%s\n", responseJson)
 }
 
 func main() {

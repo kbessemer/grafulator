@@ -24,43 +24,46 @@ ChartJS.register(
 
 function UploadFile() {
 
+  const [graphData, setGraphData] = React.useState(null);
+  const [graphDataFinal, setGraphDataFinal] = React.useState(null);
+  const [graphLabels, setGraphLabels] = React.useState(null);
+  const [isUploaded, setIsUploaded] = React.useState(false);
+  var graphDataSets = [];
+
   function dropHandler(ev) {
     console.log('File(s) dropped');
   
     // Prevent default behavior (Prevent file from being opened)
-    ev.preventDefault();
-  
     if (ev.dataTransfer.items) {
-      // Use DataTransferItemList interface to access the file(s)
-      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
         // If dropped items aren't files, reject them
-        if (ev.dataTransfer.items[i].kind === 'file') {
-          var file = ev.dataTransfer.items[i].getAsFile();
-          console.log('... file[' + i + '].name = ' + file.name);
+        if (ev.dataTransfer.items[0].kind === 'file') {
+          var file = ev.dataTransfer.items[0].getAsFile();
           var data = new FormData()
           data.append('file', file)
 
           fetch('http://192.168.1.94:8081/upload', {
-          method: 'post',
-          body: data,
-          headers: {
-            'Authorization': localStorage.getItem('session-id')
-            // 'Content-Type': 'application/x-www-form-urlencoded',
-          },
+            method: 'post',
+            body: data,
+            headers: {
+              'Authorization': localStorage.getItem('session-id')
+            },
         }).then(response => response.json())
-        .then(json => {
-          if (json.Success) {
-            console.log("File upload success");
-        }});
+        .then(
+          (result) => {
+            DrawGraph(result.data, result.labels);
+            setIsUploaded(true);
+          },
+          // Note: it's important to handle errors here
+          // instead of a catch() block so that we don't swallow
+          // exceptions from actual bugs in components.
+          (error) => {
+            console.log(error);
+          }
+        );
         }
-      }
-    } else {
-      // Use DataTransfer interface to access the file(s)
-      for (var i = 0; i < ev.dataTransfer.files.length; i++) {
-        console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
-      }
     }
-  }
+    ev.preventDefault();
+    }
 
   function dragOverHandler(ev) {
     console.log('File(s) in drop zone');
@@ -69,27 +72,19 @@ function UploadFile() {
     ev.preventDefault();
   }
 
-  var graphLabels = ["Jan", "Feb", "Mar", "Apr"]
-
-  var graphData = [
-    {
-      label: "Kyle",
-      data: [1500,1000,1200,1800],
-      borderColor: "#00ff12",
-      backgroundColor: "#00ff12"
-    },
-    {
-      label: "Biprodeep",
-      data: [3000,2000,3200,2800],
-      borderColor: "#f6ff00",
-      backgroundColor: "#f6ff00"
+  function DrawGraph(data, labels) {
+    console.log("Draw Graph Executed")
+    setGraphData(data);
+    setGraphLabels(labels);
+    for (var x in graphData) {
+      if (x === 0) {
+        
+      } else {
+        graphDataSets.push({ id: x, label: graphData[x].label, data: graphData[x].data, borderColor: graphData[x].borderColor, backgroundColor: graphData[x].backgroundColor })
+      }
     }
-  ]
-
-  var graphDataSets = [];
-
-  for (var x in graphData) {
-    graphDataSets.push({ id: x, label: graphData[x].label, data: graphData[x].data, borderColor: graphData[x].borderColor, backgroundColor: graphData[x].backgroundColor })
+    setGraphDataFinal(graphDataSets);
+    console.log(graphDataFinal);
   }
 
   return (
@@ -98,15 +93,13 @@ function UploadFile() {
         <p className="drop_zone">Drag one or more files to upload and generate a graph</p>
       </div>
       <br></br>
-      <div className="graph-area">
-        <Line
+        {isUploaded ? <div className="graph-area"><Line
           datasetIdKey='myLine'
           data={{
             labels: graphLabels,
-            datasets: graphDataSets,
+            datasets: graphDataFinal,
           }}
-        />
-      </div>
+        /></div> : null}
     </div>
     )
 }
