@@ -793,12 +793,12 @@ func RouteMyPassword(w http.ResponseWriter, r *http.Request, p httprouter.Params
 
 func main() {
 	// BasicAuth username and password
-	// user := "kyle"
-	// pass := "bessemer!"
+	user := "kyle"
+	pass := "bessemer!"
 
 	// HTTPRouter Settings and Routes
 	router := httprouter.New()
-	router.POST("/login/", RouteLogin)
+	router.POST("/login/", BasicAuth(RouteLogin, user, pass))
 	router.GET("/getusers/", JWTAuth(RouteGetUsers))
 	router.POST("/newuser/", JWTAuth(RouteNewUser))
 	router.POST("/deleteuser/", JWTAuth(RouteDeleteUser))

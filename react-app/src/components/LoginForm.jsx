@@ -3,9 +3,11 @@ import '../App.css';
 import { useNavigate } from "react-router-dom";
 import { Box, LinearProgress } from '@mui/material';
 import AlertSnackbar from './alerts/AlertSnackbar';
+import { Buffer } from 'buffer'
 
 function LoginForm() {
 
+    const utf8 = require('utf8');
     const [formUser, setFormUser] = React.useState("");
     const [formPass, setFormPass] = React.useState("");
     const [isLoginLoading, setIsLoginLoading] = React.useState(false);
@@ -22,9 +24,17 @@ function LoginForm() {
       setIsPasswordError(false);
       setIsUserError(false);
       setIsLoginLoading(true);
+      let user = 'kyle';
+      let pass = 'bessemer!';
+      let auth = 'Basic ' + new Buffer(user + ':' + pass).toString('base64')
+      console.log(auth);
       fetch('http://192.168.1.94:8081/login', {
         method: 'post',
-        body: JSON.stringify(loginBody)
+        body: JSON.stringify(loginBody),
+        headers: {
+          'Authorization': auth
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
       }).then(response => response.json())
       .then(json => {
         if (json.Success) {
