@@ -26,7 +26,7 @@ function LoginForm() {
       setIsPassMismatchError(false);
       setIsSuccess(false);
       setIsLoading(true);
-      if (formNewPass !== formNewPass2) {
+      if (formNewPass != formNewPass2) {
         setIsLoading(false);
         setIsPassMismatchError(true);
         event.preventDefault();

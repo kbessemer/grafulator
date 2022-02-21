@@ -843,17 +843,17 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	csvReader := csv.NewReader(fi)
 	data, err := csvReader.ReadAll()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	colors := []string{"#00ff12", "#f6ff00", "#ff0000", "#001eff", "#ea00ff", "#ff9600"}
 
+	fmt.Println(myFile.Data)
+
 	for i, line := range data {
 		if i == 0 {
 			for j, field := range line {
-				if j == 0 {
-
-				} else {
+				if j != 0 {
 					myFile.Labels = append(myFile.Labels, field)
 				}
 			}
@@ -868,8 +868,8 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			myData.BorderColor = colors[i]
 			myData.BackgroundColor = colors[i]
 		}
-
 		myFile.Data = append(myFile.Data, myData)
+		myData.Data = []string{}
 	}
 
 	myFile.Success = true

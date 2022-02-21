@@ -24,7 +24,6 @@ ChartJS.register(
 
 function UploadFile() {
 
-  const [graphData, setGraphData] = React.useState(null);
   const [graphDataFinal, setGraphDataFinal] = React.useState(null);
   const [graphLabels, setGraphLabels] = React.useState(null);
   const [isUploaded, setIsUploaded] = React.useState(false);
@@ -74,13 +73,13 @@ function UploadFile() {
 
   function DrawGraph(data, labels) {
     console.log("Draw Graph Executed")
-    setGraphData(data);
     setGraphLabels(labels);
-    for (var x in graphData) {
-      if (x === 0) {
-        
-      } else {
-        graphDataSets.push({ id: x, label: graphData[x].label, data: graphData[x].data, borderColor: graphData[x].borderColor, backgroundColor: graphData[x].backgroundColor })
+    console.log(data);
+    for (var x in data) {
+      if (x != 0) {
+        console.log(x)
+        console.log(data[x].label)
+        graphDataSets.push({ id: x, label: data[x].label, data: data[x].data, borderColor: data[x].borderColor, backgroundColor: data[x].backgroundColor })
       }
     }
     setGraphDataFinal(graphDataSets);
@@ -89,9 +88,9 @@ function UploadFile() {
 
   return (
     <div>
-      <div id="drop_zone" onDrop={dropHandler} onDragOver={dragOverHandler}>
+      {isUploaded ? null : <div id="drop_zone" onDrop={dropHandler} onDragOver={dragOverHandler}>
         <p className="drop_zone">Drag one or more files to upload and generate a graph</p>
-      </div>
+      </div>}
       <br></br>
         {isUploaded ? <div className="graph-area"><Line
           datasetIdKey='myLine'

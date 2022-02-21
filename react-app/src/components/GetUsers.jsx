@@ -77,7 +77,7 @@ function GetUsers() {
         setIsExistsError(false);
         setIsPasswordError(false);
         setIsSessionError(false);
-        if (formPass !== formPass2) {
+        if (formPass != formPass2) {
             handleClose();
             setIsLoading(false);
             setIsPasswordError(true);
