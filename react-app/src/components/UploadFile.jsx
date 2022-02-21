@@ -28,7 +28,6 @@ function UploadFile() {
   const [graphLabels, setGraphLabels] = React.useState(null);
   const [isUploaded, setIsUploaded] = React.useState(false);
   const [graphList, setGraphList] = React.useState([]);
-  var graphDataSets = [];
 
   function dropHandler(ev) {
     console.log('File(s) dropped');
@@ -73,11 +72,23 @@ function UploadFile() {
   }
 
   function DrawGraph(data, labels) {
+    var graphDataSets = [];
     console.log("Draw Graph Executed")
     setGraphLabels(labels);
-    console.log(data);
     for (var x in data) {
+      console.log(data[x]);
       graphDataSets.push({ id: x, label: data[x].label, data: data[x].data, borderColor: data[x].borderColor, backgroundColor: data[x].backgroundColor })
+    }
+    setGraphDataFinal(graphDataSets);
+  }
+
+  function DrawGraph2(data, labels) {
+    var graphDataSets = [];
+    console.log("Draw Graph Executed")
+    setGraphLabels(labels);
+    for (var x in data) {
+      console.log(data[x]);
+      graphDataSets.push({ id: x, label: data[x].label, data: data[x].data, borderColor: data[x].bordercolor, backgroundColor: data[x].backgroundcolor })
     }
     setGraphDataFinal(graphDataSets);
   }
@@ -121,10 +132,36 @@ function UploadFile() {
     }).then(response => response.json())
     .then(json => {
       if (json.Success) {
-        DrawGraph(json.Data.GraphData.data, json.Data.labels);
+        DrawGraph2(json.Data.GraphData.data, json.Data.GraphData.labels);
         setIsUploaded(true);
       }
     });
+  }
+
+  function RefreshPage() {
+    window.location.reload();
+  }
+
+  function FilterTable() {
+    // Declare variables
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("myFilter");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("GraphTable");
+    tr = table.getElementsByTagName("tr");
+  
+    // Loop through all table rows, and hide those who don't match the search query
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[0];
+      if (td) {
+        txtValue = td.textContent || td.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }
+    }
   }
 
   return (
@@ -139,18 +176,31 @@ function UploadFile() {
             datasets: graphDataFinal,
           }}
         /></div> : null}
+        {isUploaded ? <a onClick={RefreshPage}>Load New Graph</a> : null}
         <br></br>
-        {isUploaded ? null : <table id="GraphTable">
+        {isUploaded ? null : <div><form className="form-style-8">
+              <ul>
+                <li>
+                    <label htmlFor="myFilter">Search</label>
+                    <input type="text" id="myFilter" onKeyUp={FilterTable}/>
+                    <span>Filter the graph list by ID</span>
+                </li>
+                <li>
+                </li>
+              </ul>
+            </form>
+            <table id="GraphTable">
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Timestamp</th>
                 <th>View</th>
               </tr>
             </thead>
             <tbody>
-              {graphList.map((graph, index) => { return ( <tr key={index}><td>{graph.Timestamp}</td><td><a onClick={() => ViewPastGraph(graph._id)}>View</a></td></tr>)})}
+              {graphList.map((graph, index) => { return ( <tr key={index}><td>{graph._id}</td><td>{graph.Timestamp}</td><td><a onClick={() => ViewPastGraph(graph._id)}><img src="eye-arrow-right.png"></img></a></td></tr>)})}
             </tbody>
-          </table>}
+          </table></div>}
     </div>
     )
 }

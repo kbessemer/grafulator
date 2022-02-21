@@ -935,23 +935,6 @@ func RouteGetGraphs(w http.ResponseWriter, r *http.Request, p httprouter.Params)
 	// Set content-type to JSON
 	w.Header().Set("Content-Type", "application/json")
 
-	type MyCSVLine struct {
-		Label           string   `bson:"label" json:"label"`
-		Data            []string `bson:"data" json:"data"`
-		BorderColor     string   `bson:"borderColor" json:"borderColor"`
-		BackgroundColor string   `bson:"backgroundColor" json:"backgroundColor"`
-	}
-
-	type GraphData struct {
-		Labels []string    `bson:"labels" json:"labels"`
-		Data   []MyCSVLine `bson:"data" json:"data"`
-	}
-
-	type MyData struct {
-		Timestamp string      `bson:"Timestamp" json:"Timestamp"`
-		GraphData []GraphData `bson:"GraphData" json:"GraphData"`
-	}
-
 	type TempData struct {
 		ID        primitive.ObjectID `bson:"_id" json:"_id"`
 		Timestamp string             `bson:"Timestamp" json:"Timestamp"`
@@ -990,8 +973,10 @@ func RouteGetGraphs(w http.ResponseWriter, r *http.Request, p httprouter.Params)
 	// Select the database name and collection name
 	coll := client.Database("go_project1").Collection("graphs")
 
+	opts := options.Find().SetSort(bson.D{{"_id", -1}})
+
 	// Query the database for the user list
-	cursor, err := coll.Find(context.TODO(), bson.D{})
+	cursor, err := coll.Find(context.TODO(), bson.D{}, opts)
 	// If no documents were found, send a response and return
 	if err == mongo.ErrNoDocuments {
 		fmt.Printf("No documents were found")
