@@ -9,11 +9,7 @@ function LoginForm() {
     const [formPass, setFormPass] = React.useState("");
     const [formNewPass, setFormNewPass] = React.useState("");
     const [formNewPass2, setFormNewPass2] = React.useState("");
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [isPasswordError, setIsPasswordError] = React.useState(false);
-    const [isPassMismatchError, setIsPassMismatchError] = React.useState(false);
-    const [isSuccess, setIsSuccess] = React.useState(false);
-    const [isSessionError, setIsSessionError] = React.useState(false);
+    const [myState, setMyState] = React.useState({});
   
     var passBody = {
       password: formPass,
@@ -22,19 +18,11 @@ function LoginForm() {
     };
   
     function PasswordPost(event) {
-      if (isPasswordError) {
-        setIsPasswordError(!isPasswordError);
-      }
-      if (isPassMismatchError) {
-        setIsPassMismatchError(!isPassMismatchError);
-      }
-      if (isSuccess) {
-        setIsSuccess(!isSuccess);
-      }
+      setMyState({Loading: true})
       if (formNewPass != formNewPass2) {
-        setIsLoading(false);
-        setIsPassMismatchError(true);
+        setMyState({Loading: false, PasswordMismatch: true})
         event.preventDefault();
+        setTimeout(() => setMyState({PasswordMismatch: false}), 3000);
         return
     }
       fetch('http://192.168.1.94:8081/mypassword', {
@@ -47,12 +35,15 @@ function LoginForm() {
       }).then(response => response.json())
       .then(json => {
         if (json.Success) {
-            setIsSuccess(true);
+          setMyState({Loading: false, Success: true})
+            setTimeout(() => setMyState({Success: false}), 3000);
         } else {
           if (json.Error === "Bad password") {
-            setIsPasswordError(true);
+            setMyState({Loading: false, PasswordError: true})
+            setTimeout(() => setMyState({PasswordError: false}), 3000);
           } else if (json.Error === "Bad token") {
-              setIsSessionError(true);
+              setMyState({Loading: false, SessionError: true})
+              setTimeout(() => setMyState({SessionError: false}), 3000);
           }
         }
       });
@@ -75,11 +66,11 @@ function LoginForm() {
     return (
       <div>
         <PermanentDrawerRight />
-        {isPasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
-        {isPassMismatchError ? <AlertSnackbar open={true} message="New passwords do not match!" severity="error"/> : null}
-        {isSessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
-        {isSuccess ? <AlertSnackbar open={true} message="Password changed!" severity="success"/> : null}
-        {isLoading ? <Box sx={{ width: '100%' }}>
+        {myState.PasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
+        {myState.PasswordMismatch ? <AlertSnackbar open={true} message="New passwords do not match!" severity="error"/> : null}
+        {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
+        {myState.Success ? <AlertSnackbar open={true} message="Password changed!" severity="success"/> : null}
+        {myState.Loading ? <Box sx={{ width: '100%' }}>
                 <LinearProgress />
               </Box> : null}
         <form className="form-style-7">

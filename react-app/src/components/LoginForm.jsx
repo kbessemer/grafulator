@@ -10,9 +10,7 @@ function LoginForm() {
     const utf8 = require('utf8');
     const [formUser, setFormUser] = React.useState("");
     const [formPass, setFormPass] = React.useState("");
-    const [isLoginLoading, setIsLoginLoading] = React.useState(false);
-    const [isPasswordError, setIsPasswordError] = React.useState(false);
-    const [isUserError, setIsUserError] = React.useState(false);
+    const [myState, setMyState] = React.useState({});
     let navigate = useNavigate();
   
     var loginBody = {
@@ -21,13 +19,7 @@ function LoginForm() {
     };
   
     function LoginPost(event) {
-      if (isPasswordError) {
-        setIsPasswordError(!isPasswordError);
-      }
-      if (isUserError) {
-        setIsUserError(!isUserError);
-      }
-      setIsLoginLoading(true);
+      setMyState({Loading: true});
       let user = 'kyle';
       let pass = 'bessemer!';
       let auth = 'Basic ' + new Buffer(user + ':' + pass).toString('base64')
@@ -47,11 +39,11 @@ function LoginForm() {
           navigate("../dashboard", { replace: true });
         } else {
           if (json.Error === "Bad password") {
-            setIsPasswordError(true);
-            setIsLoginLoading(false);
+            setMyState({Loading: false, PasswordError: true});
+            setTimeout(() => setMyState({PasswordError: false}), 3000);
           } else if (json.Error === "No user found") {
-            setIsUserError(true);
-            setIsLoginLoading(false);
+            setMyState({Loading: false, UserError: true});
+            setTimeout(() => setMyState({UserError: false}), 3000);
           }
         }
       });
@@ -69,8 +61,8 @@ function LoginForm() {
   
     return (
       <div>
-        {isPasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
-        {isUserError ? <AlertSnackbar open={true} message="User not found!" severity="error"/> : null}
+        {myState.PasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
+        {myState.UserError ? <AlertSnackbar open={true} message="User not found!" severity="error"/> : null}
         <form className="form-style-7">
           <ul>
             <li>
@@ -87,7 +79,7 @@ function LoginForm() {
                 <input type="submit" value="LOGIN" onClick={LoginPost}/>
             </li>
           </ul>
-          {isLoginLoading ? <Box sx={{ width: '100%' }}>
+          {myState.Loading ? <Box sx={{ width: '100%' }}>
             <LinearProgress />
           </Box> : null}
         </form>

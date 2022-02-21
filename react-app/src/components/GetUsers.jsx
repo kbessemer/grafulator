@@ -7,11 +7,7 @@ import AlertSnackbar from './alerts/AlertSnackbar';
 function GetUsers() {
 
     const [userList, setUserList] = React.useState([]);
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [isDeleteLoading, setIsDeleteLoading] = React.useState(false);
-    const [isSessionError, setIsSessionError] = React.useState(false);
-    const [isSuccessDeleted, setIsSuccessDeleted] = React.useState();
-    const [isSuccessAdded, setIsSuccessAdded] = React.useState();
+    const [myState, setMyState] = React.useState({});
 
     const style = {
       position: 'absolute',
@@ -25,10 +21,7 @@ function GetUsers() {
     };
 
     function DeleteUserPost(username) {
-      setIsSuccessDeleted(false);
-      setIsSuccessAdded(false);
-      setIsDeleteLoading(true);
-      setIsSessionError(false);
+      setMyState({Loading: true})
       fetch('http://192.168.1.94:8081/deleteuser', {
         method: 'post',
         body: JSON.stringify({
@@ -41,16 +34,15 @@ function GetUsers() {
       }).then(response => response.json())
       .then(json => {
         if (json.Success) {
-          setIsDeleteLoading(false);
-          setIsSuccessDeleted(true);
+          setMyState({UserDeleted: true, Loading: false});
           GetUserList();
+          setTimeout(() => setMyState({UserDeleted: false}), 3000);
         } else {
             if (json.Error === "Bad token") {
-              setIsDeleteLoading(false);
-              setIsSessionError(true)
+              setMyState({SessionError: true, Loading: false})
+              setTimeout(() => setMyState({SessionError: false}), 3000);
               return
             }
-            setIsDeleteLoading(false);
         }
       });
     }
@@ -59,8 +51,6 @@ function GetUsers() {
       const [open, setOpen] = React.useState(false);
       const handleOpen = () => setOpen(true);
       const handleClose = () => setOpen(false);
-      const [isPasswordError, setIsPasswordError] = React.useState(false);
-      const [isExistsError, setIsExistsError] = React.useState(false);
       const [formUser, setFormUser] = React.useState("");
       const [formPass, setFormPass] = React.useState("");
       const [formPass2, setFormPass2] = React.useState("");
@@ -71,26 +61,12 @@ function GetUsers() {
       };
     
       function AddUserPost(event) {
-        if (isSuccessAdded) {
-          setIsSuccessAdded(!isSuccessAdded);
-        }
-        if (isSuccessDeleted) {
-          setIsSuccessDeleted(!isSuccessDeleted);
-        }
-        if (isExistsError) {
-          setIsExistsError(!isExistsError);
-        }
-        if (isPasswordError) {
-          setIsPasswordError(!isPasswordError);
-        }
-        if (isSessionError) {
-          setIsSessionError(!isSessionError);
-        }
+        setMyState({Loading: true})
         if (formPass != formPass2) {
             handleClose();
-            setIsLoading(false);
-            setIsPasswordError(true);
+            setMyState({PasswordMismatch: true, Loading: false});
             event.preventDefault();
+            setTimeout(() => setMyState({PasswordMismatch: false}), 3000);
             return
         }
         fetch('http://192.168.1.94:8081/newuser', {
@@ -104,16 +80,19 @@ function GetUsers() {
         .then(json => {
           if (json.Success) {
             handleClose();
-            setIsSuccessAdded(true);
+            setMyState({UserAdded: true, Loading: false});
             GetUserList()
+            setTimeout(() => setMyState({UserAdded: false}), 3000);
           } else {
               if (json.Error === "User exists") {
                 handleClose();
-                setIsExistsError(true)
+                setMyState({UserExists: true, Loading: false})
+                setTimeout(() => setMyState({UserExists: false}), 3000);
                 return
               } else if (json.Error === "Bad token") {
                 handleClose();
-                setIsSessionError(true)
+                setMyState({SessionError: true, Loading: false})
+                setTimeout(() => setMyState({SessionError: false}), 3000);
                 return
               }
           }
@@ -136,11 +115,11 @@ function GetUsers() {
 
       return (
         <div>
-          {isPasswordError ? <AlertSnackbar open={true} message="Passwords do not match!" severity="error"/> : null}
-          {isExistsError ? <AlertSnackbar open={true} message="User already exists!" severity="error"/> : null}
-          {isSessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
-          {isSuccessDeleted ? <AlertSnackbar open={true} message="User deleted!" severity="success"/> : null}
-          {isSuccessAdded ? <AlertSnackbar open={true} message="User added!" severity="success"/> : null}
+          {myState.PasswordMismatch ? <AlertSnackbar open={true} message="Passwords do not match!" severity="error"/> : null}
+          {myState.UserExists ? <AlertSnackbar open={true} message="User already exists!" severity="error"/> : null}
+          {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
+          {myState.UserDeleted ? <AlertSnackbar open={true} message="User deleted!" severity="success"/> : null}
+          {myState.UserAdded ? <AlertSnackbar open={true} message="User added!" severity="success"/> : null}
           <input className="add-user" type="submit" value="ADD USER" onClick={handleOpen}/>
           <Modal
             open={open}
@@ -226,6 +205,9 @@ function GetUsers() {
 
     return (
         <div>
+            {myState.Loading ? <Box sx={{ width: '100%' }}>
+              <LinearProgress />
+            </Box> : null}
             <form className="form-style-8">
               <ul>
                 <li>
@@ -237,12 +219,6 @@ function GetUsers() {
                 </li>
               </ul>
             </form>
-            {isDeleteLoading ? <Box sx={{ width: '100%' }}>
-                <div><LinearProgress /><br></br></div>
-              </Box> : null}
-            {isLoading ? <Box sx={{ width: '100%' }}>
-                <div><LinearProgress /><br></br></div>
-              </Box> : null}
             <AddUser />
             <br></br>
             <table id="UserTable">
