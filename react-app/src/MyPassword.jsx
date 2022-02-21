@@ -22,10 +22,15 @@ function LoginForm() {
     };
   
     function PasswordPost(event) {
-      setIsPasswordError(false);
-      setIsPassMismatchError(false);
-      setIsSuccess(false);
-      setIsLoading(true);
+      if (isPasswordError) {
+        setIsPasswordError(!isPasswordError);
+      }
+      if (isPassMismatchError) {
+        setIsPassMismatchError(!isPassMismatchError);
+      }
+      if (isSuccess) {
+        setIsSuccess(!isSuccess);
+      }
       if (formNewPass != formNewPass2) {
         setIsLoading(false);
         setIsPassMismatchError(true);
@@ -43,14 +48,11 @@ function LoginForm() {
       .then(json => {
         if (json.Success) {
             setIsSuccess(true);
-            setIsLoading(false);
         } else {
           if (json.Error === "Bad password") {
             setIsPasswordError(true);
-            setIsLoading(false);
           } else if (json.Error === "Bad token") {
               setIsSessionError(true);
-              setIsLoading(false);
           }
         }
       });

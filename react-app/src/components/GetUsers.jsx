@@ -71,12 +71,21 @@ function GetUsers() {
       };
     
       function AddUserPost(event) {
-        setIsSuccessAdded(false);
-        setIsSuccessDeleted(false);
-        setIsLoading(true);
-        setIsExistsError(false);
-        setIsPasswordError(false);
-        setIsSessionError(false);
+        if (isSuccessAdded) {
+          setIsSuccessAdded(!isSuccessAdded);
+        }
+        if (isSuccessDeleted) {
+          setIsSuccessDeleted(!isSuccessDeleted);
+        }
+        if (isExistsError) {
+          setIsExistsError(!isExistsError);
+        }
+        if (isPasswordError) {
+          setIsPasswordError(!isPasswordError);
+        }
+        if (isSessionError) {
+          setIsSessionError(!isSessionError);
+        }
         if (formPass != formPass2) {
             handleClose();
             setIsLoading(false);
@@ -96,17 +105,14 @@ function GetUsers() {
           if (json.Success) {
             handleClose();
             setIsSuccessAdded(true);
-            setIsLoading(false);
             GetUserList()
           } else {
               if (json.Error === "User exists") {
                 handleClose();
-                setIsLoading(false);
                 setIsExistsError(true)
                 return
               } else if (json.Error === "Bad token") {
                 handleClose();
-                setIsLoading(false);
                 setIsSessionError(true)
                 return
               }

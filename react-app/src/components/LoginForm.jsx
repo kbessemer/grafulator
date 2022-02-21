@@ -21,8 +21,12 @@ function LoginForm() {
     };
   
     function LoginPost(event) {
-      setIsPasswordError(false);
-      setIsUserError(false);
+      if (isPasswordError) {
+        setIsPasswordError(!isPasswordError);
+      }
+      if (isUserError) {
+        setIsUserError(!isUserError);
+      }
       setIsLoginLoading(true);
       let user = 'kyle';
       let pass = 'bessemer!';
