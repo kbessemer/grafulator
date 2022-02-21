@@ -313,3 +313,10 @@ th, td {
 	color: #D2E2FF;
 	background: url("delete.png") no-repeat center;
 }
+
+.graph-area {
+	background: #C0C0C0;
+	border: 2px solid #1d1f23;
+	width:  600px;
+	height: 300px;
+  }

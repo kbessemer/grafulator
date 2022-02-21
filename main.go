@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -791,6 +793,37 @@ func RouteMyPassword(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	fmt.Fprintf(w, "%s\n", output)
 }
 
+func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
+	r.ParseMultipartForm(16 * 1024 * 1024) // 16MB
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Create an empty file on filesystem
+	f, err := os.OpenFile(filepath.Join("uploads", handler.Filename), os.O_WRONLY|os.O_CREATE, 0666)
+	defer f.Close()
+
+	// Copy the file to the images directory
+	io.Copy(f, file)
+	w.Header().Set("Content-Type", "application/json")
+
+	type MyData struct {
+		Label           string   `json:"label"`
+		Data            []string `json:"data"`
+		BorderColor     string   `json:"borderColor"`
+		BackgroundColor string   `json:"backgroundColor"`
+	}
+
+	type MyFile struct {
+		Labels []string `json:"labels"`
+		Data   []MyData `json:"data"`
+	}
+}
+
 func main() {
 	// BasicAuth username and password
 	user := "kyle"
@@ -803,6 +836,7 @@ func main() {
 	router.POST("/newuser/", JWTAuth(RouteNewUser))
 	router.POST("/deleteuser/", JWTAuth(RouteDeleteUser))
 	router.POST("/mypassword/", JWTAuth(RouteMyPassword))
+	router.POST("/upload/", JWTAuth(RouteUpload))
 
 	handler := cors.AllowAll().Handler(router)
 	log.Fatal(http.ListenAndServe(":8081", handler))
