@@ -3,13 +3,15 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { LinearProgress } from '@mui/material';
 import AlertSnackbar from './alerts/AlertSnackbar';
-import DeleteIcon from '@mui/icons-material/Delete';
 
 function GetUsers() {
 
     const [userList, setUserList] = React.useState([]);
+    const [isLoading, setIsLoading] = React.useState(false);
     const [isDeleteLoading, setIsDeleteLoading] = React.useState(false);
     const [isSessionError, setIsSessionError] = React.useState(false);
+    const [isSuccessDeleted, setIsSuccessDeleted] = React.useState();
+    const [isSuccessAdded, setIsSuccessAdded] = React.useState();
 
     const style = {
       position: 'absolute',
@@ -23,6 +25,8 @@ function GetUsers() {
     };
 
     function DeleteUserPost(username) {
+      setIsSuccessDeleted(false);
+      setIsSuccessAdded(false);
       setIsDeleteLoading(true);
       setIsSessionError(false);
       fetch('http://192.168.1.94:8081/deleteuser', {
@@ -38,7 +42,8 @@ function GetUsers() {
       .then(json => {
         if (json.Success) {
           setIsDeleteLoading(false);
-          GetUserList()
+          setIsSuccessDeleted(true);
+          GetUserList();
         } else {
             if (json.Error === "Bad token") {
               setIsDeleteLoading(false);
@@ -54,10 +59,8 @@ function GetUsers() {
       const [open, setOpen] = React.useState(false);
       const handleOpen = () => setOpen(true);
       const handleClose = () => setOpen(false);
-      const [isLoading, setIsLoading] = React.useState(false);
       const [isPasswordError, setIsPasswordError] = React.useState(false);
       const [isExistsError, setIsExistsError] = React.useState(false);
-      const [isSessionError, setIsSessionError] = React.useState(false);
       const [formUser, setFormUser] = React.useState("");
       const [formPass, setFormPass] = React.useState("");
       const [formPass2, setFormPass2] = React.useState("");
@@ -68,14 +71,17 @@ function GetUsers() {
       };
     
       function AddUserPost(event) {
+        setIsSuccessAdded(false);
+        setIsSuccessDeleted(false);
         setIsLoading(true);
         setIsExistsError(false);
         setIsPasswordError(false);
         setIsSessionError(false);
-        if (formPass != formPass2) {
+        if (formPass !== formPass2) {
             handleClose();
             setIsLoading(false);
             setIsPasswordError(true);
+            event.preventDefault();
             return
         }
         fetch('http://192.168.1.94:8081/newuser', {
@@ -89,6 +95,8 @@ function GetUsers() {
         .then(json => {
           if (json.Success) {
             handleClose();
+            setIsSuccessAdded(true);
+            setIsLoading(false);
             GetUserList()
           } else {
               if (json.Error === "User exists") {
@@ -119,12 +127,14 @@ function GetUsers() {
       function handlePass2(event) {
         setFormPass2(event.target.value);
       }
-    
+
       return (
         <div>
           {isPasswordError ? <AlertSnackbar open={true} message="Passwords do not match!" severity="error"/> : null}
           {isExistsError ? <AlertSnackbar open={true} message="User already exists!" severity="error"/> : null}
           {isSessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
+          {isSuccessDeleted ? <AlertSnackbar open={true} message="User deleted!" severity="success"/> : null}
+          {isSuccessAdded ? <AlertSnackbar open={true} message="User added!" severity="success"/> : null}
           <input className="add-user" type="submit" value="ADD USER" onClick={handleOpen}/>
           <Modal
             open={open}
@@ -136,14 +146,17 @@ function GetUsers() {
             <form className="form-style-7">
               <ul>
                 <li>
+                    <label htmlFor="username">User</label>
                     <input type="text" name="username" maxLength="100" value={formUser} onChange={handleUser}/>
                     <span>Enter the username here</span>
                 </li>
                 <li>
+                    <label htmlFor="password">Password</label>
                     <input type="password" name="password" maxLength="100" value={formPass} onChange={handlePass}/>
                     <span>Enter the password here</span>
                 </li>
                 <li>
+                    <label htmlFor="password verify">Verify Password</label>
                     <input type="password" name="password verify" maxLength="100" value={formPass2} onChange={handlePass2}/>
                     <span>Re-enter the password here</span>
                 </li>
@@ -151,9 +164,6 @@ function GetUsers() {
                     <input type="submit" value="ADD USER" onClick={AddUserPost}/>
                 </li>
               </ul>
-              {isLoading ? <Box sx={{ width: '100%' }}>
-                <LinearProgress />
-              </Box> : null}
             </form>
           </Box>
           </Modal>
@@ -186,15 +196,50 @@ function GetUsers() {
           )
     }
 
+    function FilterTable() {
+      // Declare variables
+      var input, filter, table, tr, td, i, txtValue;
+      input = document.getElementById("myFilter");
+      filter = input.value.toUpperCase();
+      table = document.getElementById("UserTable");
+      tr = table.getElementsByTagName("tr");
+    
+      // Loop through all table rows, and hide those who don't match the search query
+      for (i = 0; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td")[0];
+        if (td) {
+          txtValue = td.textContent || td.innerText;
+          if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }
+      }
+    }
+
     return (
         <div>
+            <form className="form-style-8">
+              <ul>
+                <li>
+                    <label htmlFor="myFilter">Search</label>
+                    <input type="text" id="myFilter" onKeyUp={FilterTable}/>
+                    <span>Filter the user list here</span>
+                </li>
+                <li>
+                </li>
+              </ul>
+            </form>
             {isDeleteLoading ? <Box sx={{ width: '100%' }}>
-                <LinearProgress />
+                <div><LinearProgress /><br></br></div>
+              </Box> : null}
+            {isLoading ? <Box sx={{ width: '100%' }}>
+                <div><LinearProgress /><br></br></div>
               </Box> : null}
             <AddUser />
             <br></br>
-            <h3>User List:</h3>
-            <table>
+            <table id="UserTable">
               <tr>
                 <th>Username</th>
                 <th>Last Login</th>

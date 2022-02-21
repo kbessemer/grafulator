@@ -195,6 +195,7 @@ func AddToken(token string, username string) {
 		if err != nil {
 			panic(err)
 		}
+		return
 	}
 
 	// Insert the user into the database with the hashed password
@@ -203,6 +204,114 @@ func AddToken(token string, username string) {
 	if err != nil {
 		panic(err)
 	}
+	return
+}
+
+// Function for checking token, for verifying a token is authentic, or not expired
+func CheckToken(token string) bool {
+	now := time.Now()
+	epoch := now.Unix()
+
+	// Load the env file
+	err := godotenv.Load("variables.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// Get MongoDB environment variable for connecting to database
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+	}
+
+	// Connect go Mongo Database
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		panic(err)
+	}
+
+	// Close the database connection at the end of the function call
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+
+	// Set the database name and collection name
+	coll := client.Database("go_project1").Collection("tokens")
+
+	type TokenStruct struct {
+		Username   string `bson:"Username" json:"Username"`
+		Token      string `bson:"Token" json:"Token"`
+		Expiration int64  `bson:"Expiration" json:"Expiration"`
+	}
+
+	// A variable to put the database result into
+	var result TokenStruct
+
+	// Query the database for the provided username, send a error response if no user is found
+	err = coll.FindOne(context.TODO(), bson.D{{"Token", token}}).Decode(&result)
+	// If no document is found
+	if err == mongo.ErrNoDocuments {
+		return false
+	}
+
+	expiration := result.Expiration
+
+	if expiration <= epoch {
+		return false
+	}
+
+	return true
+}
+
+func GetTokenUsername(token string) string {
+	// Load the env file
+	err := godotenv.Load("variables.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// Get MongoDB environment variable for connecting to database
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+	}
+
+	// Connect go Mongo Database
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		panic(err)
+	}
+
+	// Close the database connection at the end of the function call
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+
+	// Set the database name and collection name
+	coll := client.Database("go_project1").Collection("tokens")
+
+	// Struct for token database results
+	type TokenStruct struct {
+		Username   string `bson:"Username" json:"Username"`
+		Token      string `bson:"Token" json:"Token"`
+		Expiration int64  `bson:"Expiration" json:"Expiration"`
+	}
+
+	// A variable to put the database result into
+	var result TokenStruct
+
+	// Query the database for the provided username, send a error response if no user is found
+	err = coll.FindOne(context.TODO(), bson.D{{"Token", token}}).Decode(&result)
+	// If no document is found
+	if err == mongo.ErrNoDocuments {
+		return ""
+	}
+
+	return result.Username
 }
 
 // Route: Login, Protected by BasicAuth, takes a username and password in request body
@@ -276,8 +385,12 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		return
 	}
 
+	// Last Login Time
+	now := time.Now()
+	timeFormat := fmt.Sprint(now.Month(), now.Day(), now.Year(), now.Hour(), ":", now.Minute())
+
 	filter := bson.D{{"username", username}}
-	update := bson.D{{"$set", bson.D{{"LastLogin", time.Now()}}}}
+	update := bson.D{{"$set", bson.D{{"LastLogin", timeFormat}}}}
 	_, err = coll.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		panic(err)
@@ -332,72 +445,14 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fmt.Fprintf(w, "%s\n", responseJson)
 }
 
-// Function for checking token, for verifying a token is authentic, or not expired
-func CheckToken(token string) bool {
-	now := time.Now()
-	epoch := now.Unix()
-
-	// Load the env file
-	err := godotenv.Load("variables.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	// Get MongoDB environment variable for connecting to database
-	uri := os.Getenv("MONGO_URI")
-	if uri == "" {
-		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
-	}
-
-	// Connect go Mongo Database
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
-	if err != nil {
-		panic(err)
-	}
-
-	// Close the database connection at the end of the function call
-	defer func() {
-		if err := client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
-
-	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("tokens")
-
-	type TokenStruct struct {
-		Username   string `bson:"Username" json:"Username"`
-		Token      string `bson:"Token" json:"Token"`
-		Expiration int64  `bson:"Expiration" json:"Expiration"`
-	}
-
-	// A variable to put the database result into
-	var result TokenStruct
-
-	// Query the database for the provided username, send a error response if no user is found
-	err = coll.FindOne(context.TODO(), bson.D{{"Token", token}}).Decode(&result)
-	// If no document is found
-	if err == mongo.ErrNoDocuments {
-		return false
-	}
-
-	expiration := result.Expiration
-
-	if expiration <= epoch {
-		return false
-	}
-
-	return true
-}
-
 // Route: Get Users, for getting a list of users
 func RouteGetUsers(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Set content-type to JSON
 	w.Header().Set("Content-Type", "application/json")
 
 	type Data struct {
-		Username  string    `bson:"username" json:"username"`
-		LastLogin time.Time `bson:"LastLogin" json:"LastLogin"`
+		Username  string `bson:"username" json:"username"`
+		LastLogin string `bson:"LastLogin" json:"LastLogin"`
 	}
 
 	type Response struct {
@@ -540,7 +595,7 @@ func RouteNewUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 
 	// Insert the user into the database with the hashed password
-	doc := bson.D{{"username", username}, {"password", hashedPassword}}
+	doc := bson.D{{"username", username}, {"password", hashedPassword}, {"LastLogin", "Never"}}
 	_, err = coll.InsertOne(context.TODO(), doc)
 	if err != nil {
 		panic(err)
@@ -613,6 +668,129 @@ func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	fmt.Fprintf(w, "%s\n", output)
 }
 
+// Route for changing the user's account password
+func RouteMyPassword(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// Set content-type to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	type MyPass struct {
+		Password    string `json:"password"`
+		NewPassword string `json:"newPassword"`
+		Session     string `json:"session"`
+	}
+
+	// Declare a new LoginType struct.
+	var p1 MyPass
+
+	// Try to decode the request body into the struct. If there is an error,
+	// respond to the client with the error message and a 400 status code.
+	err := json.NewDecoder(r.Body).Decode(&p1)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Assign username and password variables from request body
+	password := p1.Password
+	newPassword := p1.NewPassword
+	token := p1.Session
+
+	// Hash the password and store it in a variable
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 14)
+
+	username := GetTokenUsername(token)
+
+	if username == "" {
+		response := ResponseError{
+			Success: false,
+			Error:   "Invalid token",
+		}
+
+		// Marshal into JSON
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Send error response to user in JSON
+		fmt.Fprintf(w, "%s\n", responseJson)
+		return
+	}
+
+	// Load the env file
+	err = godotenv.Load("variables.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// Get MongoDB environment variable for connecting to database
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		log.Fatal("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+	}
+
+	// Connect go Mongo Database
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		panic(err)
+	}
+
+	// Close the database connection at the end of the function call
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+
+	// Set the database name and collection name
+	coll := client.Database("go_project1").Collection("users")
+
+	// Setup a result2 variable to check if the user already exists in the database
+	var result2 bson.M
+
+	// Query the database to see if the user already exists
+	err = coll.FindOne(context.TODO(), bson.D{{"username", username}}).Decode(&result2)
+	// Send error response if the user exists
+	if err != mongo.ErrNoDocuments {
+		// Get current hashed password from database query result
+		var currentHashedPassword = result2["password"]
+		passwordObject := currentHashedPassword.(primitive.Binary).Data
+
+		// Compare hashed password to request body password
+		err = bcrypt.CompareHashAndPassword(passwordObject, []byte(password))
+		// If password does not match, send error response
+		if err != nil {
+			response := ResponseError{
+				Success: false,
+				Error:   "Bad password",
+			}
+
+			// Marshal into JSON
+			responseJson, err := json.Marshal(response)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Send error response to user in JSON
+			fmt.Fprintf(w, "%s\n", responseJson)
+			return
+		}
+
+	}
+
+	// Update password in database with hashed password
+	filter := bson.D{{"username", username}}
+	update := bson.D{{"$set", bson.D{{"password", hashedPassword}}}}
+	_, err = coll.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		panic(err)
+	}
+
+	// Send success response to the user in JSON
+	output, _ := json.Marshal(map[string]bool{"Success": true})
+	fmt.Fprintf(w, "%s\n", output)
+}
+
 func main() {
 	// BasicAuth username and password
 	// user := "kyle"
@@ -624,6 +802,7 @@ func main() {
 	router.GET("/getusers/", JWTAuth(RouteGetUsers))
 	router.POST("/newuser/", JWTAuth(RouteNewUser))
 	router.POST("/deleteuser/", JWTAuth(RouteDeleteUser))
+	router.POST("/mypassword/", JWTAuth(RouteMyPassword))
 
 	handler := cors.AllowAll().Handler(router)
 	log.Fatal(http.ListenAndServe(":8081", handler))

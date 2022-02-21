@@ -1,7 +1,5 @@
-import logo from './opteev_logo.png';
 import React from 'react';
 import './App.css';
-import GetUsers from "./components/GetUsers";
 import UploadFile from "./components/UploadFile";
 import PermanentDrawerRight from "./components/Drawer";
 

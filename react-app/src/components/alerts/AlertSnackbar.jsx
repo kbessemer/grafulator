@@ -8,13 +8,13 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 });
 
 export default function AlertSnackbar(props) {
-  const [state, setState] = React.useState({
+  const state = {
     open: props.open,
     vertical: 'top',
     horizontal: 'right',
     message: props.message,
     severity: props.severity
-  });
+  };
 
   const { vertical, horizontal, open, message, severity } = state;
 

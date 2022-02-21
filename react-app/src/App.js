@@ -4,8 +4,9 @@ import './App.css';
 import LoginForm from './components/LoginForm';
 import Dashboard from './Dashboard';
 import Users from './Users';
+import MyPassword from './MyPassword';
 import SignOut from './SignOut';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/" element={<LoginForm />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/users" element={<Users />} />
+            <Route path="/mypassword" element={<MyPassword />} />
             <Route path="/signout" element={<SignOut />} />
           </Routes>
         </body>

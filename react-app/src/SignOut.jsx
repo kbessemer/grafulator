@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 function GetUsers() {
     
     let navigate = useNavigate();
-    const [userList, setUserList] = React.useState([]);
 
     React.useEffect(() => {
         localStorage.removeItem('session-id');

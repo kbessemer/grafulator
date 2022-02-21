@@ -2,13 +2,15 @@ import React from 'react';
 import '../App.css';
 import { useNavigate } from "react-router-dom";
 import { Box, LinearProgress } from '@mui/material';
+import AlertSnackbar from './alerts/AlertSnackbar';
 
 function LoginForm() {
 
     const [formUser, setFormUser] = React.useState("");
     const [formPass, setFormPass] = React.useState("");
     const [isLoginLoading, setIsLoginLoading] = React.useState(false);
-    const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+    const [isPasswordError, setIsPasswordError] = React.useState(false);
+    const [isUserError, setIsUserError] = React.useState(false);
     let navigate = useNavigate();
   
     var loginBody = {
@@ -17,6 +19,8 @@ function LoginForm() {
     };
   
     function LoginPost(event) {
+      setIsPasswordError(false);
+      setIsUserError(false);
       setIsLoginLoading(true);
       fetch('http://192.168.1.94:8081/login', {
         method: 'post',
@@ -26,8 +30,15 @@ function LoginForm() {
         if (json.Success) {
           localStorage.setItem('session-id', json.Token);
           console.log("Logged In!");
-          setIsLoggedIn(true);
           navigate("../dashboard", { replace: true });
+        } else {
+          if (json.Error === "Bad password") {
+            setIsPasswordError(true);
+            setIsLoginLoading(false);
+          } else if (json.Error === "No user found") {
+            setIsUserError(true);
+            setIsLoginLoading(false);
+          }
         }
       });
   
@@ -44,6 +55,8 @@ function LoginForm() {
   
     return (
       <div>
+        {isPasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
+        {isUserError ? <AlertSnackbar open={true} message="User not found!" severity="error"/> : null}
         <form className="form-style-7">
           <ul>
             <li>

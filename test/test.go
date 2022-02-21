@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -13,17 +14,16 @@ import (
 )
 
 func main() {
-	if CheckToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImtiZXNzZW1lciIsImV4cCI6MTY0NTM1NDM3OSwiaXNzIjoidGVzdCJ9.c4PI9gmW72wubVyZ8zhkYkw--8p7e4faBVtUVzC7SlI") {
-		print("true")
-	} else {
-		print("false")
-	}
+	now := time.Now()
+	fmt.Printf("%T\n", now)
+
+	format := fmt.Sprint(now.Month(), now.Day(), now.Year(), now.Hour(), ":", now.Minute())
+
+	fmt.Println(format)
+
 }
 
-func CheckToken(token string) bool {
-	now := time.Now()
-	epoch := now.Unix()
-
+func GetTokenUsername(token string) string {
 	// Load the env file
 	err := godotenv.Load("variables.env")
 	if err != nil {
@@ -52,6 +52,7 @@ func CheckToken(token string) bool {
 	// Set the database name and collection name
 	coll := client.Database("go_project1").Collection("tokens")
 
+	// Struct for token database results
 	type TokenStruct struct {
 		Username   string `bson:"Username" json:"Username"`
 		Token      string `bson:"Token" json:"Token"`
@@ -65,18 +66,8 @@ func CheckToken(token string) bool {
 	err = coll.FindOne(context.TODO(), bson.D{{"Token", token}}).Decode(&result)
 	// If no document is found
 	if err == mongo.ErrNoDocuments {
-		return false
+		return ""
 	}
 
-	expiration := result.Expiration
-	print(expiration)
-	print("\n")
-	print(epoch)
-	print("\n")
-
-	if expiration <= epoch {
-		return false
-	}
-
-	return true
+	return result.Username
 }
