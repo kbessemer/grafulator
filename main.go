@@ -1104,6 +1104,69 @@ func RouteGetGraph(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	return
 }
 
+// Route: New User, for creating a new user, adds user to database, password is hashed. Takes a username and password in the request body
+func RouteDeleteGraph(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// Set content-type to JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	type DeleteGraph struct {
+		ID string `json:"_id"`
+	}
+
+	// Declare a new NewUser struct.
+	var p1 DeleteGraph
+
+	// Try to decode the request body into the struct. If there is an error,
+	// respond to the client with the error message and a 400 status code.
+	err := json.NewDecoder(r.Body).Decode(&p1)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Setup username and password variables from request body
+	id := p1.ID
+	graphID, err := primitive.ObjectIDFromHex(id)
+
+	// Load the env file
+	err = godotenv.Load("variables.env")
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
+	// Get the Mongo DB environment variable
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+	}
+
+	// Connect to the Mongo Database
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Close the database connection at the end of the function
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	// Set the database name and collection name
+	coll := client.Database("go_project1").Collection("graphs")
+
+	filter := bson.D{{"_id", graphID}}
+	_, err = coll.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Send success response to the user in JSON
+	output, _ := json.Marshal(map[string]bool{"Success": true})
+	fmt.Fprintf(w, "%s\n", output)
+}
+
 func main() {
 	// BasicAuth username and password
 	user := "kyle"
@@ -1119,6 +1182,7 @@ func main() {
 	router.POST("/upload/", JWTAuth(RouteUpload))
 	router.GET("/getgraphs/", JWTAuth(RouteGetGraphs))
 	router.POST("/graph/", JWTAuth(RouteGetGraph))
+	router.POST("/deletegraph/", JWTAuth(RouteDeleteGraph))
 
 	handler := cors.AllowAll().Handler(router)
 	fmt.Println(http.ListenAndServe(":8081", handler))

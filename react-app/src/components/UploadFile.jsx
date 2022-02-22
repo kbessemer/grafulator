@@ -1,6 +1,7 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import Tooltip2 from '@mui/material/Tooltip';
+import AlertSnackbar from './alerts/AlertSnackbar';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -29,6 +30,7 @@ function UploadFile() {
   const [graphLabels, setGraphLabels] = React.useState(null);
   const [isUploaded, setIsUploaded] = React.useState(false);
   const [graphList, setGraphList] = React.useState([]);
+  const [myState, setMyState] = React.useState({});
 
   function dropHandler(ev) {
     console.log('File(s) dropped');
@@ -139,6 +141,33 @@ function UploadFile() {
     });
   }
 
+  function DeleteGraphPost(id) {
+    setMyState({Loading: true})
+    fetch('http://192.168.1.94:8081/deletegraph', {
+      method: 'post',
+      body: JSON.stringify({
+        _id: id,
+      }),
+      headers: {
+        'Authorization': localStorage.getItem('session-id')
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }).then(response => response.json())
+    .then(json => {
+      if (json.Success) {
+        setMyState({GraphDeleted: true, Loading: false});
+        GetGraphList()
+        setTimeout(() => setMyState({GraphDeleted: false}), 3000);
+      } else {
+          if (json.Error === "Bad token") {
+            setMyState({SessionError: true, Loading: false})
+            setTimeout(() => setMyState({SessionError: false}), 3000);
+            return
+          }
+      }
+    });
+  }
+
   function RefreshPage() {
     window.location.reload();
   }
@@ -167,6 +196,8 @@ function UploadFile() {
 
   return (
     <div>
+      {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
+      {myState.GraphDeleted ? <AlertSnackbar open={true} message="Graph deleted!" severity="success"/> : null}
       {isUploaded ? null : <div id="dropZone" onDrop={dropHandler} onDragOver={dragOverHandler}>
         <p className="dropZone">Drag one or more files to upload and generate a graph</p>
       </div>}
@@ -195,10 +226,11 @@ function UploadFile() {
                 <th>ID</th>
                 <th>Timestamp</th>
                 <th>View</th>
+                <th>Delete</th>
               </tr>
             </thead>
             <tbody>
-              {graphList.map((graph, index) => { return ( <tr key={index}><td>{graph._id}</td><td>{graph.Timestamp}</td><td><Tooltip2 title="View Graph"><a onClick={() => ViewPastGraph(graph._id)} href="#"><img className="icon" src="images/eye-arrow-right.png"></img></a></Tooltip2></td></tr>)})}
+              {graphList.map((graph, index) => { return ( <tr key={index}><td>{graph._id}</td><td>{graph.Timestamp}</td><td><Tooltip2 title="View Graph"><a onClick={() => ViewPastGraph(graph._id)} href="#"><img className="icon" src="images/eye-arrow-right.png"></img></a></Tooltip2></td><td><Tooltip2 title="Delete Graph"><a onClick={() => DeleteGraphPost(graph._id)} href="#"><img className="icon" src="images/delete.png"></img></a></Tooltip2></td></tr>)})}
             </tbody>
           </table></div>}
     </div>
