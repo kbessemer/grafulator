@@ -6,10 +6,8 @@ export const GlobalStyles = createGlobalStyle`
   }
   .App-header {
     background: ${({ theme }) => theme.AppHeader.background};
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: left;
+    justify-content: left;
     font-size: 18px;
   }
   body {
@@ -17,14 +15,20 @@ export const GlobalStyles = createGlobalStyle`
     color: ${({ theme }) => theme.body.text};
     font-family: sans-serif;
     transition: all 0.50s linear;
+    margin-left: 250px;
+  }
+  a {
+    color: ${({ theme }) => theme.a.color};
+  }
+  a:hover {
+    color: ${({ theme }) => theme.ahover.color};
   }
   .formStyle7 {
     background: ${({ theme }) => theme.formStyle7.background};
-    margin: 50px auto;
     padding: 20px;
     color: ${({ theme }) => theme.formStyle7.color};
     font-family: sans-serif,
-    border-radius:2px;
+    border-radius: 2px;
     max-width:400px;
   }
   .formStyle7 ul{
@@ -127,7 +131,6 @@ export const GlobalStyles = createGlobalStyle`
   }
   .formStyle8 {
     background: ${({ theme }) => theme.formStyle8.background};
-    margin: 50px auto;
     padding: 20px;
     color: ${({ theme }) => theme.formStyle8.color};
     font-family: sans-serif,
@@ -241,6 +244,7 @@ export const GlobalStyles = createGlobalStyle`
   .dropZone {
 	  color: ${({ theme }) => theme.dropZoneclass.color};
 	  font-size: 18px;
+    text-align: center;
   }
   .icon {
 	  filter: ${({ theme }) => theme.icon.filter};

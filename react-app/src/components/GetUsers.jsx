@@ -210,7 +210,7 @@ function GetUsers() {
               <ul>
                 <li>
                     <label htmlFor="myFilter">Search</label>
-                    <input type="text" id="myFilter" onKeyUp={FilterTable}/>
+                    <input type="text" id="myFilter" onKeyUp={FilterTable} placeholder="...by username"/>
                 </li>
                 <li>
                 </li>

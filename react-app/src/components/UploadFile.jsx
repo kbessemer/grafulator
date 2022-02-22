@@ -182,7 +182,7 @@ function UploadFile() {
   
     // Loop through all table rows, and hide those who don't match the search query
     for (i = 0; i < tr.length; i++) {
-      td = tr[i].getElementsByTagName("td")[0];
+      td = tr[i].getElementsByTagName("td")[1];
       if (td) {
         txtValue = td.textContent || td.innerText;
         if (txtValue.toUpperCase().indexOf(filter) > -1) {
@@ -208,13 +208,13 @@ function UploadFile() {
             datasets: graphDataFinal,
           }}
         /></div> : null}
-        {isUploaded ? <a onClick={RefreshPage}>Load New Graph</a> : null}
+        {isUploaded ? <a onClick={RefreshPage} href="#">Load New Graph</a> : null}
         <br></br>
         {isUploaded ? null : <div><form className="formStyle8">
               <ul>
                 <li>
                     <label htmlFor="myFilter">Search</label>
-                    <input type="text" id="myFilter" onKeyUp={FilterTable}/>
+                    <input type="text" id="myFilter" onKeyUp={FilterTable} placeholder="...by timestamp"/>
                 </li>
                 <li>
                 </li>

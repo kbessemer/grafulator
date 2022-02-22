@@ -13,23 +13,29 @@ export const lightTheme = {
         toggleBorder: '#FFF',
         background: '#7d8697',
     },
+    a: {
+        color: '#000',
+    },
+    ahover: {
+        color: '#024a82',
+    },
     formStyle7: {
-        background: '#545c6b',
+        background: '#fff',
         color: '#5994FF',
     },
     formStyle7li: {
         border: '1px solid #2e363f',
     },
     formStyle7lilabel: {
-        background: '#545c6b',
-        color: '#fff',
+        background: '#fff',
+        color: '#000',
     },
     formStyle7input: {
-        background: '#545c6b',
+        background: '#fff',
         color: '#000',
     },
     formStyle7inputhover: {
-        background: '#545c6b',
+        background: '#fff',
         color: '#000',
     },
     formStyle7inputsubmit: {
@@ -90,23 +96,29 @@ export const darkTheme = {
         toggleBorder: '#2e363f',
         background: '#282c34',
     },
+    a: {
+        color: '#fff',
+    },
+    ahover: {
+        color: '#5994FF',
+    },
     formStyle7: {
-        background: '#1d1f23',
+        background: '#282c34',
         color: '#5994FF',
     },
     formStyle7li: {
         border: '1px solid #2e363f',
     },
     formStyle7lilabel: {
-        background: '#1d1f23',
+        background: '#282c34',
         color: '#5994FF',
     },
     formStyle7input: {
-        background: '#1d1f23',
+        background: '#282c34',
         color: '#B9B9B9',
     },
     formStyle7inputhover: {
-        background: '#1d1f23',
+        background: '#282c34',
         color: '#B9B9B9',
     },
     formStyle7inputsubmit: {
