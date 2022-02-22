@@ -1,6 +1,14 @@
+import { ContactsTwoTone, Contrast } from "@mui/icons-material"
+
 export const lightTheme = {
+    html: {
+        background: '#fff',
+    },
+    AppHeader: {
+        background: '#fff',
+    },
     body: { 
-        body: '#7d8697',
+        body: '#fff',
         text: '#000',
         toggleBorder: '#FFF',
         background: '#7d8697',
@@ -14,7 +22,7 @@ export const lightTheme = {
     },
     formStyle7lilabel: {
         background: '#545c6b',
-        color: '#5994FF',
+        color: '#fff',
     },
     formStyle7input: {
         background: '#545c6b',
@@ -34,19 +42,19 @@ export const lightTheme = {
         color: '#fff',
     },
     formStyle8: {
-        background: '#7d8697',
+        background: '#fff',
         margin: '50px auto',
     },
     formStyle8lilabel: {
-        background: '#7d8697',
+        background: '#fff',
         color: '#024a82',
     },
     formStyle8input: {
-        background: '#7d8697',
+        background: '#fff',
         color: '#2e363f',
     },
     formStyle8inputhover: {
-        background: '#292b34',
+        background: '#fff',
         color: '#2e363f',
     },
     formStyle8inputsubmit: {
@@ -59,14 +67,23 @@ export const lightTheme = {
         color: '#fff',
     },
     dropZoneid: {
-        background: '#545c6b',
+        background: '#7d8697',
         border: '2px dashed #2e363f',
     },
     dropZoneclass: {
-        color: '#024a82',
+        color: '#fff',
     },
+    icon: {
+        filter: 'contrast(0%)',
+    }
 }
 export const darkTheme = {
+    html: {
+        background: '#282c34',
+    },
+    AppHeader: {
+        background: '#282c34',
+    },
     body: { 
         body: '#282c34',
         text: '#fff',
@@ -133,4 +150,7 @@ export const darkTheme = {
     dropZoneclass: {
         color: '#5994FF',
     },
+    icon: {
+        filter: 'contrast(100%)',
+    }
 }

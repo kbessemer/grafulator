@@ -1,6 +1,17 @@
 import { createGlobalStyle} from "styled-components"
 
 export const GlobalStyles = createGlobalStyle`
+  html {
+    background: ${({ theme }) => theme.html.background};
+  }
+  .App-header {
+    background: ${({ theme }) => theme.AppHeader.background};
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
   body {
     background: ${({ theme }) => theme.body.body};
     color: ${({ theme }) => theme.body.text};
@@ -222,13 +233,16 @@ export const GlobalStyles = createGlobalStyle`
 	  color: ${({ theme }) => theme.formStyle8inputsubmithover.color};
   }
   #dropZone {
-	background: ${({ theme }) => theme.dropZoneid.background};
-	border: ${({ theme }) => theme.dropZoneid.border};
-	width:  600px;
-	height: 200px;
+	  background: ${({ theme }) => theme.dropZoneid.background};
+	  border: ${({ theme }) => theme.dropZoneid.border};
+	  width:  600px;
+	  height: 200px;
   }
   .dropZone {
-	color: ${({ theme }) => theme.dropZoneclass.color};
-	font-size: 18px;
+	  color: ${({ theme }) => theme.dropZoneclass.color};
+	  font-size: 18px;
+  }
+  .icon {
+	  filter: ${({ theme }) => theme.icon.filter};
   }
   `

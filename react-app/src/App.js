@@ -1,4 +1,3 @@
-import logo from './opteev_logo.png';
 import React from 'react';
 import './App.css';
 import LoginForm from './components/LoginForm';
@@ -10,15 +9,30 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import { GlobalStyles } from "./globalStyles";
 import { lightTheme, darkTheme } from "./Theme"
-import moon from './moon.png';
-import light from './light.png';
+import Tooltip from '@mui/material/Tooltip';
 
 function App() {
   
-  const [theme, setTheme] = React.useState('dark');
-  const themeToggler = () => {
-    theme === 'light' ? setTheme('dark') : setTheme('light')
+  const [theme, setTheme] = React.useState('light');
+
+  function themeToggler() {
+    if (theme === 'light') {
+      setTheme('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      setTheme('light');
+      localStorage.setItem('theme', 'light');
+    }
   }
+
+  React.useEffect(() => {
+    var lsTheme = localStorage.getItem('theme');
+    if (lsTheme === 'dark') {
+      setTheme('dark');
+    } else if (lsTheme === 'light') {
+      setTheme('light');
+    }
+  }, [])
 
   return (
     <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
@@ -26,8 +40,8 @@ function App() {
       <Router>
         <div className="App">
           <header className="App-header">
-            <img src={logo} width="470" height="85" alt="logo" />
-            {theme === 'dark' ? <a onClick={themeToggler}><img src={light}/></a> : <a onClick={themeToggler}><img src={moon}/></a>}
+            <img src="images/opteev_logo.png" width="235" height="42" alt="logo" />
+            {theme === 'dark' ? <Tooltip title="Light Theme"><a onClick={themeToggler} href="#"><img src="images/light.png"/></a></Tooltip> : <Tooltip title="Dark Theme"><a onClick={themeToggler} href="#"><img src="images/moon.png"/></a></Tooltip>}
             <p> </p>
             <Routes>
               <Route path="/" element={<LoginForm />} />

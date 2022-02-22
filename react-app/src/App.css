@@ -300,16 +300,6 @@ th, td {
 	color:#fff;
 }
 
-.delete-user {
-	background: #2e363f;
-	border: none;
-	padding: 10px 20px 10px 20px;
-	border-bottom: 3px solid #5994FF;
-	border-radius: 3px;
-	color: #D2E2FF;
-	background: url("delete.png") no-repeat center;
-}
-
 .graph-area {
 	background: #C0C0C0;
 	border: 2px solid #1d1f23;

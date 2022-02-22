@@ -1,5 +1,6 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
+import Tooltip2 from '@mui/material/Tooltip';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -167,7 +168,7 @@ function UploadFile() {
   return (
     <div>
       {isUploaded ? null : <div id="dropZone" onDrop={dropHandler} onDragOver={dragOverHandler}>
-        <p className="drop_zone">Drag one or more files to upload and generate a graph</p>
+        <p className="dropZone">Drag one or more files to upload and generate a graph</p>
       </div>}
         {isUploaded ? <div className="graph-area"><Line
           datasetIdKey='myLine'
@@ -197,7 +198,7 @@ function UploadFile() {
               </tr>
             </thead>
             <tbody>
-              {graphList.map((graph, index) => { return ( <tr key={index}><td>{graph._id}</td><td>{graph.Timestamp}</td><td><a onClick={() => ViewPastGraph(graph._id)}><img src="eye-arrow-right.png"></img></a></td></tr>)})}
+              {graphList.map((graph, index) => { return ( <tr key={index}><td>{graph._id}</td><td>{graph.Timestamp}</td><td><Tooltip2 title="View Graph"><a onClick={() => ViewPastGraph(graph._id)} href="#"><img className="icon" src="images/eye-arrow-right.png"></img></a></Tooltip2></td></tr>)})}
             </tbody>
           </table></div>}
     </div>

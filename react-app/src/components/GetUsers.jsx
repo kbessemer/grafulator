@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { LinearProgress } from '@mui/material';
 import AlertSnackbar from './alerts/AlertSnackbar';
+import Tooltip from '@mui/material/Tooltip';
 
 function GetUsers() {
 
@@ -223,7 +224,7 @@ function GetUsers() {
                 <th>Last Login</th>
                 <th>Delete</th>
               </tr>
-              {userList.map((user, index) => { return ( <tr key={index}><td>{user.username}</td><td>{user.LastLogin}</td><td><input className="delete-user" value="" type="submit" onClick={() => DeleteUserPost(user.username)}/></td></tr>)})}
+              {userList.map((user, index) => { return ( <tr key={index}><td>{user.username}</td><td>{user.LastLogin}</td><td><Tooltip title="Delete User"><a onClick={() => DeleteUserPost(user.username)} href="#"><img className="icon" src="images/delete.png"></img></a></Tooltip></td></tr>)})}
             </table>
         </div>
     )
