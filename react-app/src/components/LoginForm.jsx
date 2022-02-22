@@ -1,5 +1,4 @@
 import React from 'react';
-import '../App.css';
 import { useNavigate } from "react-router-dom";
 import { Box, LinearProgress } from '@mui/material';
 import AlertSnackbar from './alerts/AlertSnackbar';
@@ -63,17 +62,15 @@ function LoginForm() {
       <div>
         {myState.PasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
         {myState.UserError ? <AlertSnackbar open={true} message="User not found!" severity="error"/> : null}
-        <form className="form-style-7">
+        <form className="formStyle7">
           <ul>
             <li>
                 <label htmlFor="username">Username</label>
                 <input type="text" name="username" maxLength="100" value={formUser} onChange={handleUser}/>
-                <span>Enter your username here</span>
             </li>
             <li>
                 <label htmlFor="password">Password</label>
                 <input type="password" name="password" maxLength="100" value={formPass} onChange={handlePass}/>
-                <span>Enter your password here</span>
             </li>
             <li>
                 <input type="submit" value="LOGIN" onClick={LoginPost}/>

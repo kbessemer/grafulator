@@ -1,5 +1,4 @@
 import React from 'react';
-import './App.css';
 import UploadFile from "./components/UploadFile";
 import PermanentDrawerRight from "./components/Drawer";
 

@@ -25,7 +25,7 @@ export default function PermanentDrawerRight() {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
-            bgcolor: "#1d1f23",
+            bgcolor: '#1d1f23',
             color: "#fff"
           },
         }}

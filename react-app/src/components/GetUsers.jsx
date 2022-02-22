@@ -131,19 +131,16 @@ function GetUsers() {
             <form className="form-style-7">
               <ul>
                 <li>
-                    <label htmlFor="username">User</label>
+                    <label htmlFor="username">Username</label>
                     <input type="text" name="username" maxLength="100" value={formUser} onChange={handleUser}/>
-                    <span>Enter the username here</span>
                 </li>
                 <li>
                     <label htmlFor="password">Password</label>
                     <input type="password" name="password" maxLength="100" value={formPass} onChange={handlePass}/>
-                    <span>Enter the password here</span>
                 </li>
                 <li>
                     <label htmlFor="password verify">Verify Password</label>
                     <input type="password" name="password verify" maxLength="100" value={formPass2} onChange={handlePass2}/>
-                    <span>Re-enter the password here</span>
                 </li>
                 <li>
                     <input type="submit" value="ADD USER" onClick={AddUserPost}/>
@@ -208,12 +205,11 @@ function GetUsers() {
             {myState.Loading ? <Box sx={{ width: '100%' }}>
               <LinearProgress />
             </Box> : null}
-            <form className="form-style-8">
+            <form className="formStyle8">
               <ul>
                 <li>
                     <label htmlFor="myFilter">Search</label>
                     <input type="text" id="myFilter" onKeyUp={FilterTable}/>
-                    <span>Filter the user list here</span>
                 </li>
                 <li>
                 </li>

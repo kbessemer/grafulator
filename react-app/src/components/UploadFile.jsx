@@ -166,7 +166,7 @@ function UploadFile() {
 
   return (
     <div>
-      {isUploaded ? null : <div id="drop_zone" onDrop={dropHandler} onDragOver={dragOverHandler}>
+      {isUploaded ? null : <div id="dropZone" onDrop={dropHandler} onDragOver={dragOverHandler}>
         <p className="drop_zone">Drag one or more files to upload and generate a graph</p>
       </div>}
         {isUploaded ? <div className="graph-area"><Line
@@ -178,12 +178,11 @@ function UploadFile() {
         /></div> : null}
         {isUploaded ? <a onClick={RefreshPage}>Load New Graph</a> : null}
         <br></br>
-        {isUploaded ? null : <div><form className="form-style-8">
+        {isUploaded ? null : <div><form className="formStyle8">
               <ul>
                 <li>
                     <label htmlFor="myFilter">Search</label>
                     <input type="text" id="myFilter" onKeyUp={FilterTable}/>
-                    <span>Filter the graph list by ID</span>
                 </li>
                 <li>
                 </li>

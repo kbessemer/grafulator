@@ -1,5 +1,4 @@
 import React from 'react';
-import './App.css';
 import { Box, LinearProgress } from '@mui/material';
 import AlertSnackbar from './components/alerts/AlertSnackbar';
 import PermanentDrawerRight from "./components/Drawer";
@@ -73,22 +72,19 @@ function LoginForm() {
         {myState.Loading ? <Box sx={{ width: '100%' }}>
                 <LinearProgress />
               </Box> : null}
-        <form className="form-style-7">
+        <form className="formStyle8">
           <ul>
             <li>
                 <label htmlFor="password">Current Password</label>
                 <input type="password" name="password" maxLength="100" value={formPass} onChange={handlePass}/>
-                <span>Enter your current password here</span>
             </li>
             <li>
                 <label htmlFor="new password">New Password</label>
                 <input type="password" name="new password" maxLength="100" value={formNewPass} onChange={handleNewPass}/>
-                <span>Enter your new password here</span>
             </li>
             <li>
                 <label htmlFor="verify new password">Verify New Password</label>
                 <input type="password" name="verify new password" maxLength="100" value={formNewPass2} onChange={handleNewPass2}/>
-                <span>Re-enter your new password here</span>
             </li>
             <li>
                 <input type="submit" value="SUBMIT" onClick={PasswordPost}/>
