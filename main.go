@@ -801,11 +801,9 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
 
 	// Create an empty file on filesystem
 	f, err := os.OpenFile(filepath.Join("uploads", handler.Filename), os.O_WRONLY|os.O_CREATE, 0666)
-	defer f.Close()
 
 	// Copy the file to the images directory
 	io.Copy(f, file)
@@ -840,17 +838,12 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		fmt.Println(err)
 	}
 
-	// remember to close the file at the end of the program
-	defer f.Close()
-
 	// read csv values using csv.Reader
 	csvReader := csv.NewReader(fi)
 	data, err := csvReader.ReadAll()
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	colors := []string{"#00ff12", "#f6ff00", "#ff0000", "#001eff", "#ea00ff", "#ff9600"}
 
 	fmt.Println(myFile.Data)
 
@@ -869,8 +862,8 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 					myCSVLine.Data = append(myCSVLine.Data, field)
 				}
 			}
-			myCSVLine.BorderColor = colors[i]
-			myCSVLine.BackgroundColor = colors[i]
+			myCSVLine.BorderColor = "none"
+			myCSVLine.BackgroundColor = "none"
 		}
 		if i != 0 {
 			myData.Data = append(myData.Data, myCSVLine)
@@ -916,6 +909,15 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Insert the user into the database with the hashed password
 	doc := bson.D{{"Timestamp", timeFormat}, {"GraphData", myData}}
 	_, err = coll.InsertOne(context.TODO(), doc)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	f.Close()
+	file.Close()
+
+	fileName := fmt.Sprint("uploads/", handler.Filename)
+	err = os.Remove(fileName)
 	if err != nil {
 		fmt.Println(err)
 	}

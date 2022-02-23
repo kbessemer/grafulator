@@ -2,6 +2,7 @@ import React from 'react';
 import { Line } from 'react-chartjs-2';
 import Tooltip2 from '@mui/material/Tooltip';
 import AlertSnackbar from './alerts/AlertSnackbar';
+import Plot from 'react-plotly.js';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -79,8 +80,10 @@ function UploadFile() {
     console.log("Draw Graph Executed")
     setGraphLabels(labels);
     for (var x in data) {
+      const randomColor = Math.floor(Math.random()*16777215).toString(16);
+      var color = "#" + randomColor;
       console.log(data[x]);
-      graphDataSets.push({ id: x, label: data[x].label, data: data[x].data, borderColor: data[x].borderColor, backgroundColor: data[x].backgroundColor })
+      graphDataSets.push({type: 'line', name: data[x].label, mode: 'lines+markers', marker: {color: color}, x: labels, y: data[x].data});
     }
     setGraphDataFinal(graphDataSets);
   }
@@ -90,8 +93,10 @@ function UploadFile() {
     console.log("Draw Graph Executed")
     setGraphLabels(labels);
     for (var x in data) {
+      const randomColor = Math.floor(Math.random()*16777215).toString(16);
+      var color = "#" + randomColor;
       console.log(data[x]);
-      graphDataSets.push({ id: x, label: data[x].label, data: data[x].data, borderColor: data[x].bordercolor, backgroundColor: data[x].backgroundcolor })
+      graphDataSets.push({type: 'line', name: data[x].label, mode: 'lines+markers', marker: {color: color}, x: labels, y: data[x].data});
     }
     setGraphDataFinal(graphDataSets);
   }
@@ -201,15 +206,12 @@ function UploadFile() {
       {isUploaded ? null : <div id="dropZone" onDrop={dropHandler} onDragOver={dragOverHandler}>
         <p className="dropZone">Drag one or more files to upload and generate a graph</p>
       </div>}
-        {isUploaded ? <div className="graph-area"><Line
-          datasetIdKey='myLine'
-          data={{
-            labels: graphLabels,
-            datasets: graphDataFinal,
-          }}
-        /></div> : null}
-        {isUploaded ? <a onClick={RefreshPage} href="#">Load New Graph</a> : null}
+        {isUploaded ? <Plot
+          data={graphDataFinal}
+          layout={ {width: 900, height: 500, title: ''} }
+        /> : null}
         <br></br>
+        {isUploaded ? <a onClick={RefreshPage} href="#">Load New Graph</a> : null}
         {isUploaded ? null : <div><form className="formStyle8">
               <ul>
                 <li>

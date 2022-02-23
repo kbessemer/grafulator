@@ -276,3 +276,6 @@ th, td {
 		background: #3059a2;
 		color:#fff;
 	}
+	.moon {
+		filter: contrast(0%);
+	}

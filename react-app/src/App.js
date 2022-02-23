@@ -40,8 +40,12 @@ function App() {
       <Router>
         <div className="App">
           <header className="App-header">
-            <img src="images/opteev_logo.png" width="235" height="42" alt="logo" />
-            {theme === 'dark' ? <Tooltip title="Light Theme"><a onClick={themeToggler} href="#"><img src="images/light.png"/></a></Tooltip> : <Tooltip title="Dark Theme"><a onClick={themeToggler} href="#"><img src="images/moon.png"/></a></Tooltip>}
+            <div className="logo">
+              <img src="images/opteev_logo.png" width="235" height="42" alt="logo" />
+              <span className="theme">
+                {theme === 'dark' ? <Tooltip title="Light Theme"><a onClick={themeToggler} href="#"><img src="images/light.png"/></a></Tooltip> : <Tooltip title="Dark Theme"><a onClick={themeToggler} href="#"><img className="moon" src="images/moon.png"/></a></Tooltip>}
+              </span>
+            </div>
             <p> </p>
             <Routes>
               <Route path="/" element={<LoginForm />} />

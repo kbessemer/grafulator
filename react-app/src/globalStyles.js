@@ -23,6 +23,12 @@ export const GlobalStyles = createGlobalStyle`
   a:hover {
     color: ${({ theme }) => theme.ahover.color};
   }
+  .logo {
+    width: 600px;
+  }
+  .theme {
+    margin-left: 320px;
+  }
   .formStyle7 {
     background: ${({ theme }) => theme.formStyle7.background};
     padding: 20px;
