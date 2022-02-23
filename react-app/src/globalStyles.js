@@ -238,7 +238,7 @@ export const GlobalStyles = createGlobalStyle`
   .formStyle8 input[type="submit"]:hover,
   .formStyle8 input[type="button"]:hover,
   .formStyle8 input[type=file]::file-selector-button:hover{
-	  background: ${({ theme }) => theme.formStyle8inputsubmithover.color};
+	  background: ${({ theme }) => theme.formStyle8inputsubmithover.background};
 	  color: ${({ theme }) => theme.formStyle8inputsubmithover.color};
   }
   #dropZone {

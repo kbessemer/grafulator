@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate } from "react-router-dom";
 import { Box, LinearProgress } from '@mui/material';
 import AlertSnackbar from './alerts/AlertSnackbar';
-import { Buffer } from 'buffer'
+import { Buffer } from 'buffer';
+import SERVERIP from '../constants.js';
 
 function LoginForm() {
 
@@ -23,7 +24,8 @@ function LoginForm() {
       let pass = 'bessemer!';
       let auth = 'Basic ' + new Buffer(user + ':' + pass).toString('base64')
       console.log(auth);
-      fetch('http://192.168.1.94:8081/login', {
+      var url = SERVERIP + 'login';
+      fetch(url, {
         method: 'post',
         body: JSON.stringify(loginBody),
         headers: {

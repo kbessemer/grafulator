@@ -4,6 +4,7 @@ import Modal from '@mui/material/Modal';
 import { LinearProgress } from '@mui/material';
 import AlertSnackbar from './alerts/AlertSnackbar';
 import Tooltip from '@mui/material/Tooltip';
+import SERVERIP from '../constants.js';
 
 function GetUsers() {
 
@@ -23,7 +24,8 @@ function GetUsers() {
 
     function DeleteUserPost(username) {
       setMyState({Loading: true})
-      fetch('http://192.168.1.94:8081/deleteuser', {
+      var url = SERVERIP + 'deleteuser';
+      fetch(url, {
         method: 'post',
         body: JSON.stringify({
           username: username,
@@ -70,7 +72,8 @@ function GetUsers() {
             setTimeout(() => setMyState({PasswordMismatch: false}), 3000);
             return
         }
-        fetch('http://192.168.1.94:8081/newuser', {
+        var url = SERVERIP + 'newuser';
+        fetch(url, {
           method: 'post',
           body: JSON.stringify(addBody),
           headers: {
@@ -159,7 +162,8 @@ function GetUsers() {
       }, [])
 
     function GetUserList() {
-      fetch("http://192.168.1.94:8081/getusers", {
+      var url = SERVERIP + 'getusers';
+      fetch(url, {
           headers: {
             'Authorization': localStorage.getItem('session-id')
             // 'Content-Type': 'application/x-www-form-urlencoded',
@@ -177,6 +181,7 @@ function GetUsers() {
               console.log(error);
             }
           )
+      return
     }
 
     function FilterTable() {
@@ -219,12 +224,16 @@ function GetUsers() {
             <AddUser />
             <br></br>
             <table id="UserTable">
-              <tr>
-                <th>Username</th>
-                <th>Last Login</th>
-                <th>Delete</th>
-              </tr>
-              {userList.map((user, index) => { return ( <tr key={index}><td>{user.username}</td><td>{user.LastLogin}</td><td><Tooltip title="Delete User"><a onClick={() => DeleteUserPost(user.username)} href="#"><img className="icon" src="images/delete.png"></img></a></Tooltip></td></tr>)})}
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Last Login</th>
+                  <th>Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                {userList.map((user, index) => { return ( <tr key={index}><td>{user.username}</td><td>{user.LastLogin}</td><td><Tooltip title="Delete User"><a onClick={() => DeleteUserPost(user.username)} href="#"><img className="icon" src="images/delete.png"></img></a></Tooltip></td></tr>)})}
+              </tbody>
             </table>
         </div>
     )

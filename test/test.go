@@ -1,10 +1,9 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
-	"log"
-	"os"
+
+	"github.com/xuri/excelize/v2"
 )
 
 func main() {
@@ -14,63 +13,26 @@ func main() {
 
 func ParseFile() {
 
-	type MyData struct {
-		Label           string   `json:"label"`
-		Data            []string `json:"data"`
-		BorderColor     string   `json:"borderColor"`
-		BackgroundColor string   `json:"backgroundColor"`
-	}
-
-	type MyFile struct {
-		Labels []string `json:"labels"`
-		Data   []MyData `json:"data"`
-	}
-
-	var myData MyData
-	var myFile MyFile
-
-	// open file
-	f, err := os.Open("../uploads/DummySpreadsheet.csv")
+	f, err := excelize.OpenFile("../uploads/XLSXTest.xlsx")
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return
 	}
 
-	// remember to close the file at the end of the program
 	defer f.Close()
 
-	// read csv values using csv.Reader
-	csvReader := csv.NewReader(f)
-	data, err := csvReader.ReadAll()
+	// Get all the rows in the Sheet1.
+	rows, err := f.GetRows("Sheet1")
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return
 	}
 
-	colors := []string{"#00ff12", "#f6ff00", "#ff0000", "#00ff12", "#f6ff00", "#ff0000"}
-
-	for i, line := range data {
-		if i == 0 {
-			for j, field := range line {
-				if j == 0 {
-
-				} else {
-					myFile.Labels = append(myFile.Labels, field)
-				}
-			}
-		} else {
-			for j, field := range line {
-				if j == 0 {
-					myData.Label = field
-				} else {
-					myData.Data = append(myData.Data, field)
-				}
-			}
-			myData.BorderColor = colors[i]
-			myData.BackgroundColor = colors[i]
+	for _, row := range rows {
+		for _, colCell := range row {
+			fmt.Print(colCell, "\t")
 		}
-
-		myFile.Data = append(myFile.Data, myData)
+		fmt.Println()
 	}
-
-	fmt.Println(myFile)
 
 }

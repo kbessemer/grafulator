@@ -3,6 +3,7 @@ import { Line } from 'react-chartjs-2';
 import Tooltip2 from '@mui/material/Tooltip';
 import AlertSnackbar from './alerts/AlertSnackbar';
 import Plot from 'react-plotly.js';
+import SERVERIP from '../constants.js';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,16 +36,16 @@ function UploadFile() {
 
   function dropHandler(ev) {
     console.log('File(s) dropped');
-  
     // Prevent default behavior (Prevent file from being opened)
     if (ev.dataTransfer.items) {
+        ev.preventDefault();
         // If dropped items aren't files, reject them
         if (ev.dataTransfer.items[0].kind === 'file') {
           var file = ev.dataTransfer.items[0].getAsFile();
           var data = new FormData()
           data.append('file', file)
-
-          fetch('http://192.168.1.94:8081/upload', {
+          var url = SERVERIP + 'upload';
+          fetch(url, {
             method: 'post',
             body: data,
             headers: {
@@ -53,8 +54,20 @@ function UploadFile() {
         }).then(response => response.json())
         .then(
           (result) => {
-            DrawGraph(result.data.data, result.data.labels);
-            setIsUploaded(true);
+            if (result.Success) {
+              DrawGraph(result.data.data, result.data.labels);
+              setIsUploaded(true);
+            } else {
+              if (result.Error == 'Bad extension') {
+                setMyState({FileExtError: true});
+                setTimeout(() => setMyState({FileExtError: false}), 3000);
+                return
+              } else {
+                setMyState({FileError: true});
+                setTimeout(() => setMyState({FileError: false}), 3000);
+                return
+              }
+            }
           },
           // Note: it's important to handle errors here
           // instead of a catch() block so that we don't swallow
@@ -65,7 +78,6 @@ function UploadFile() {
         );
         }
     }
-    ev.preventDefault();
     }
 
   function dragOverHandler(ev) {
@@ -106,7 +118,8 @@ function UploadFile() {
   }, [])
 
   function GetGraphList() {
-    fetch("http://192.168.1.94:8081/getgraphs", {
+    var url = SERVERIP + 'getgraphs';
+    fetch(url, {
         headers: {
           'Authorization': localStorage.getItem('session-id')
           // 'Content-Type': 'application/x-www-form-urlencoded',
@@ -124,13 +137,15 @@ function UploadFile() {
             console.log(error);
           }
         )
+    return
   }
 
   function ViewPastGraph(id) {
     var postBody = {
       ID: id,
     };
-    fetch('http://192.168.1.94:8081/graph', {
+    var url = SERVERIP + 'graph'
+    fetch(url, {
       method: 'post',
       body: JSON.stringify(postBody),
       headers: {
@@ -148,7 +163,8 @@ function UploadFile() {
 
   function DeleteGraphPost(id) {
     setMyState({Loading: true})
-    fetch('http://192.168.1.94:8081/deletegraph', {
+    var url = SERVERIP + 'deletegraph'
+    fetch(url, {
       method: 'post',
       body: JSON.stringify({
         _id: id,
@@ -201,6 +217,8 @@ function UploadFile() {
 
   return (
     <div>
+      {myState.FileError ? <AlertSnackbar open={true} message="Error reading file" severity="error"/> : null}
+      {myState.FileExtError ? <AlertSnackbar open={true} message="Unsupported file type! csv or xlsx only" severity="error"/> : null}
       {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
       {myState.GraphDeleted ? <AlertSnackbar open={true} message="Graph deleted!" severity="success"/> : null}
       {isUploaded ? null : <div id="dropZone" onDrop={dropHandler} onDragOver={dragOverHandler}>

@@ -9,12 +9,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
+	"github.com/xuri/excelize/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -805,11 +807,11 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// Create an empty file on filesystem
 	f, err := os.OpenFile(filepath.Join("uploads", handler.Filename), os.O_WRONLY|os.O_CREATE, 0666)
 
-	// Copy the file to the images directory
+	// Copy the file to the uploads directory
 	io.Copy(f, file)
 	w.Header().Set("Content-Type", "application/json")
 
-	type MyCSVLine struct {
+	type MyLine struct {
 		Label           string   `json:"label"`
 		Data            []string `json:"data"`
 		BorderColor     string   `json:"borderColor"`
@@ -817,8 +819,8 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	type MyData struct {
-		Labels []string    `json:"labels"`
-		Data   []MyCSVLine `json:"data"`
+		Labels []string `json:"labels"`
+		Data   []MyLine `json:"data"`
 	}
 
 	type MyFile struct {
@@ -826,53 +828,172 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		Data    MyData `json:"data"`
 	}
 
-	var myCSVLine MyCSVLine
+	var myLine MyLine
 	var myData MyData
 	var myFile MyFile
 
 	path := "uploads/" + handler.Filename
 
-	// open file
-	fi, err := os.Open(path)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	// read csv values using csv.Reader
-	csvReader := csv.NewReader(fi)
-	data, err := csvReader.ReadAll()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(myFile.Data)
-
-	for i, line := range data {
-		if i == 0 {
-			for j, field := range line {
-				if j != 0 {
-					myData.Labels = append(myData.Labels, field)
-				}
-			}
-		} else {
-			for j, field := range line {
-				if j == 0 {
-					myCSVLine.Label = field
-				} else {
-					myCSVLine.Data = append(myCSVLine.Data, field)
-				}
-			}
-			myCSVLine.BorderColor = "none"
-			myCSVLine.BackgroundColor = "none"
+	ext := strings.Split(handler.Filename, ".")
+	if ext[1] != "csv" && ext[1] != "xlsx" {
+		response := ResponseError{
+			Success: false,
+			Error:   "Bad extension",
 		}
-		if i != 0 {
-			myData.Data = append(myData.Data, myCSVLine)
+
+		// Marshal into JSON
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println(err)
 		}
-		myCSVLine.Data = []string{}
+
+		// Send error response to the user in JSON, then return
+		fmt.Fprintf(w, "%s\n", responseJson)
+		return
 	}
 
-	myFile.Data = myData
-	myFile.Success = true
+	if handler.Header.Get("Content-Type") == "text/csv" {
+		// open file
+		fi, err := os.Open(path)
+		if err != nil {
+			fmt.Println(err)
+			response := ResponseError{
+				Success: false,
+				Error:   "Error opening file",
+			}
+
+			// Marshal into JSON
+			responseJson, err := json.Marshal(response)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Send error response to the user in JSON, then return
+			fmt.Fprintf(w, "%s\n", responseJson)
+			return
+		}
+
+		// read csv values using csv.Reader
+		csvReader := csv.NewReader(fi)
+		data, err := csvReader.ReadAll()
+		if err != nil {
+			fmt.Println(err)
+			response := ResponseError{
+				Success: false,
+				Error:   "Error opening file",
+			}
+
+			// Marshal into JSON
+			responseJson, err := json.Marshal(response)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Send error response to the user in JSON, then return
+			fmt.Fprintf(w, "%s\n", responseJson)
+			return
+		}
+
+		for i, line := range data {
+			if i == 0 {
+				for j, field := range line {
+					if j != 0 {
+						myData.Labels = append(myData.Labels, field)
+					}
+				}
+			} else {
+				for j, field := range line {
+					if j == 0 {
+						myLine.Label = field
+					} else {
+						myLine.Data = append(myLine.Data, field)
+					}
+				}
+				myLine.BorderColor = "none"
+				myLine.BackgroundColor = "none"
+			}
+			if i != 0 {
+				myData.Data = append(myData.Data, myLine)
+			}
+			myLine.Data = []string{}
+		}
+
+		myFile.Data = myData
+		myFile.Success = true
+
+		fi.Close()
+
+	} else {
+
+		fxlsx, err := excelize.OpenFile(path)
+		if err != nil {
+			fmt.Println(err)
+			response := ResponseError{
+				Success: false,
+				Error:   "Error opening file",
+			}
+
+			// Marshal into JSON
+			responseJson, err := json.Marshal(response)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Send error response to the user in JSON, then return
+			fmt.Fprintf(w, "%s\n", responseJson)
+			return
+		}
+
+		// Get all the rows in the Sheet1.
+		rows, err := fxlsx.GetRows("Sheet1")
+		if err != nil {
+			fmt.Println(err)
+			response := ResponseError{
+				Success: false,
+				Error:   "Error opening file",
+			}
+
+			// Marshal into JSON
+			responseJson, err := json.Marshal(response)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Send error response to the user in JSON, then return
+			fmt.Fprintf(w, "%s\n", responseJson)
+			return
+		}
+
+		for i, line := range rows {
+			if i == 0 {
+				for j, field := range line {
+					if j != 0 {
+						myData.Labels = append(myData.Labels, field)
+					}
+				}
+			} else {
+				for j, field := range line {
+					if j == 0 {
+						myLine.Label = field
+					} else {
+						myLine.Data = append(myLine.Data, field)
+					}
+				}
+				myLine.BorderColor = "none"
+				myLine.BackgroundColor = "none"
+			}
+			if i != 0 {
+				myData.Data = append(myData.Data, myLine)
+			}
+			myLine.Data = []string{}
+		}
+
+		myFile.Data = myData
+		myFile.Success = true
+
+		fxlsx.Close()
+
+	}
 
 	// Load the env file
 	err = godotenv.Load("variables.env")
@@ -916,8 +1037,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	f.Close()
 	file.Close()
 
-	fileName := fmt.Sprint("uploads/", handler.Filename)
-	err = os.Remove(fileName)
+	err = os.Remove(path)
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, LinearProgress } from '@mui/material';
 import AlertSnackbar from './components/alerts/AlertSnackbar';
 import PermanentDrawerRight from "./components/Drawer";
+import SERVERIP from './constants';
 
 function LoginForm() {
 
@@ -24,7 +25,8 @@ function LoginForm() {
         setTimeout(() => setMyState({PasswordMismatch: false}), 3000);
         return
     }
-      fetch('http://192.168.1.94:8081/mypassword', {
+      var url = SERVERIP + 'mypassword';
+      fetch(url, {
         method: 'post',
         body: JSON.stringify(passBody),
         headers: {
