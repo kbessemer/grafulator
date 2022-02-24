@@ -998,25 +998,24 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 					if j == 0 {
 						if field != "" {
 							if !unicode.IsLetter(rune(field[0])) {
-								for _, field2 := range col {
-									myData.Labels = append(myData.Labels, field2)
-									fmt.Println("Inside: Is Not Letter")
-									fmt.Println(myData.Labels)
-								}
-							} else {
+								fmt.Println("Inside: Is Not Letter")
 								noHeader = true
 								for _, field2 := range col {
 									myData.Labels = append(myData.Labels, field2)
-									fmt.Println("Inside: Is Letter")
-									fmt.Println(myData.Labels)
+								}
+							} else {
+								fmt.Println("Inside: Is Letter")
+								for x, field2 := range col {
+									if x != 0 {
+										myData.Labels = append(myData.Labels, field2)
+									}
 								}
 							}
 						} else {
+							fmt.Println("Inside: Line is not empty")
 							for x, field2 := range col {
 								if x != 0 {
 									myData.Labels = append(myData.Labels, field2)
-									fmt.Println("Inside: Line is not empty")
-									fmt.Println(myData.Labels)
 								}
 							}
 						}
@@ -1024,6 +1023,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 				}
 			} else {
 				if noHeader {
+					fmt.Println("Inside No Header")
 					for _, field := range col {
 						myLine.Label = strconv.Itoa(i)
 						myLine.Data = append(myLine.Data, field)
@@ -1032,6 +1032,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 					myLine.BackgroundColor = "none"
 					myData.Data = append(myData.Data, myLine)
 				} else {
+					fmt.Println("Inside Has Header")
 					for j, field := range col {
 						if j == 0 {
 							myLine.Label = field
