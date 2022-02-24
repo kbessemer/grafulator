@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
@@ -894,11 +896,31 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			return
 		}
 
+		noHeader := false
+
 		for i, line := range data {
+
 			if i == 0 {
 				for j, field := range line {
-					if j != 0 {
-						myData.Labels = append(myData.Labels, field)
+					if j == 1 {
+						_, err := strconv.ParseFloat(field, 64)
+						if err != nil {
+							for x, field2 := range line {
+								if x != 0 {
+									myData.Labels = append(myData.Labels, field2)
+								}
+							}
+						} else {
+							noHeader = true
+							for x, field2 := range line {
+								if x == 0 {
+									myLine.Label = field2
+								} else {
+									myLine.Data = append(myLine.Data, field2)
+								}
+							}
+							myData.Data = append(myData.Data, myLine)
+						}
 					}
 				}
 			} else {
@@ -916,6 +938,9 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 				myData.Data = append(myData.Data, myLine)
 			}
 			myLine.Data = []string{}
+			if noHeader == true {
+				myData.Labels = append(myData.Labels, strconv.Itoa(i))
+			}
 		}
 
 		myFile.Data = myData
@@ -924,6 +949,8 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		fi.Close()
 
 	} else {
+
+		noHeader := false
 
 		fxlsx, err := excelize.OpenFile(path)
 		if err != nil {
@@ -945,7 +972,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		}
 
 		// Get all the rows in the Sheet1.
-		rows, err := fxlsx.GetRows("Sheet1")
+		cols, err := fxlsx.GetCols("Sheet1")
 		if err != nil {
 			fmt.Println(err)
 			response := ResponseError{
@@ -964,26 +991,58 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			return
 		}
 
-		for i, line := range rows {
+		for i, col := range cols {
+
 			if i == 0 {
-				for j, field := range line {
-					if j != 0 {
-						myData.Labels = append(myData.Labels, field)
+				for j, field := range col {
+					if j == 0 {
+						if field != "" {
+							if !unicode.IsLetter(rune(field[0])) {
+								for _, field2 := range col {
+									myData.Labels = append(myData.Labels, field2)
+									fmt.Println("Inside: Is Not Letter")
+									fmt.Println(myData.Labels)
+								}
+							} else {
+								noHeader = true
+								for _, field2 := range col {
+									myData.Labels = append(myData.Labels, field2)
+									fmt.Println("Inside: Is Letter")
+									fmt.Println(myData.Labels)
+								}
+							}
+						} else {
+							for x, field2 := range col {
+								if x != 0 {
+									myData.Labels = append(myData.Labels, field2)
+									fmt.Println("Inside: Line is not empty")
+									fmt.Println(myData.Labels)
+								}
+							}
+						}
 					}
 				}
 			} else {
-				for j, field := range line {
-					if j == 0 {
-						myLine.Label = field
-					} else {
+				if noHeader {
+					for _, field := range col {
+						myLine.Label = strconv.Itoa(i)
 						myLine.Data = append(myLine.Data, field)
 					}
+					myLine.BorderColor = "none"
+					myLine.BackgroundColor = "none"
+					myData.Data = append(myData.Data, myLine)
+				} else {
+					for j, field := range col {
+						if j == 0 {
+							myLine.Label = field
+						} else {
+							myLine.Data = append(myLine.Data, field)
+						}
+					}
+					myLine.BorderColor = "none"
+					myLine.BackgroundColor = "none"
+					myData.Data = append(myData.Data, myLine)
 				}
-				myLine.BorderColor = "none"
-				myLine.BackgroundColor = "none"
-			}
-			if i != 0 {
-				myData.Data = append(myData.Data, myLine)
 			}
 			myLine.Data = []string{}
 		}
@@ -1289,6 +1348,14 @@ func RouteDeleteGraph(w http.ResponseWriter, r *http.Request, p httprouter.Param
 	fmt.Fprintf(w, "%s\n", output)
 }
 
+func RouteAutoLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// Auto checks token in header
+
+	// Send success response to the user in JSON
+	output, _ := json.Marshal(map[string]bool{"Success": true})
+	fmt.Fprintf(w, "%s\n", output)
+}
+
 func main() {
 	// BasicAuth username and password
 	user := "kyle"
@@ -1305,6 +1372,7 @@ func main() {
 	router.GET("/getgraphs/", JWTAuth(RouteGetGraphs))
 	router.POST("/graph/", JWTAuth(RouteGetGraph))
 	router.POST("/deletegraph/", JWTAuth(RouteDeleteGraph))
+	router.GET("/autologin/", JWTAuth(RouteAutoLogin))
 
 	handler := cors.AllowAll().Handler(router)
 	fmt.Println(http.ListenAndServe(":8081", handler))

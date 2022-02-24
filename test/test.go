@@ -13,26 +13,45 @@ func main() {
 
 func ParseFile() {
 
-	f, err := excelize.OpenFile("../uploads/XLSXTest.xlsx")
+	type MyLine struct {
+		Label           string   `json:"label"`
+		Data            []string `json:"data"`
+		BorderColor     string   `json:"borderColor"`
+		BackgroundColor string   `json:"backgroundColor"`
+	}
+
+	type MyData struct {
+		Labels []string `json:"labels"`
+		Data   []MyLine `json:"data"`
+	}
+
+	type MyFile struct {
+		Success bool   `json:"Success"`
+		Data    MyData `json:"data"`
+	}
+
+	fxlsx, err := excelize.OpenFile("../uploads/NoHeader.xlsx")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	defer f.Close()
 
 	// Get all the rows in the Sheet1.
-	rows, err := f.GetRows("Sheet1")
+	cols, err := fxlsx.GetCols("Sheet1")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	for _, row := range rows {
-		for _, colCell := range row {
-			fmt.Print(colCell, "\t")
+	for i, line := range cols {
+
+		if i == 0 {
+			for _, field := range line {
+				fmt.Println(field)
+			}
 		}
-		fmt.Println()
+
 	}
 
+	fxlsx.Close()
 }

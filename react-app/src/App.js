@@ -12,8 +12,9 @@ import { lightTheme, darkTheme } from "./Theme"
 import Tooltip from '@mui/material/Tooltip';
 
 function App() {
-  
+
   const [theme, setTheme] = React.useState('light');
+  const [myState, setMyState] = React.useState({});
 
   function themeToggler() {
     if (theme === 'light') {

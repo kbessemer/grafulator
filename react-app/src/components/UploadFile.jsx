@@ -4,6 +4,8 @@ import Tooltip2 from '@mui/material/Tooltip';
 import AlertSnackbar from './alerts/AlertSnackbar';
 import Plot from 'react-plotly.js';
 import SERVERIP from '../constants.js';
+import Box from '@mui/material/Box';
+import { LinearProgress } from '@mui/material';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,6 +37,7 @@ function UploadFile() {
   const [myState, setMyState] = React.useState({});
 
   function dropHandler(ev) {
+    setMyState({Loading: true})
     console.log('File(s) dropped');
     // Prevent default behavior (Prevent file from being opened)
     if (ev.dataTransfer.items) {
@@ -55,15 +58,16 @@ function UploadFile() {
         .then(
           (result) => {
             if (result.Success) {
+              setMyState({Loading: false})
               DrawGraph(result.data.data, result.data.labels);
               setIsUploaded(true);
             } else {
               if (result.Error == 'Bad extension') {
-                setMyState({FileExtError: true});
+                setMyState({FileExtError: true, Loading: false});
                 setTimeout(() => setMyState({FileExtError: false}), 3000);
                 return
               } else {
-                setMyState({FileError: true});
+                setMyState({FileError: true, Loading: false});
                 setTimeout(() => setMyState({FileError: false}), 3000);
                 return
               }
@@ -141,6 +145,7 @@ function UploadFile() {
   }
 
   function ViewPastGraph(id) {
+    setMyState({Loading: true})
     var postBody = {
       ID: id,
     };
@@ -155,6 +160,7 @@ function UploadFile() {
     }).then(response => response.json())
     .then(json => {
       if (json.Success) {
+        setMyState({Loading: false})
         DrawGraph2(json.Data.GraphData.data, json.Data.GraphData.labels);
         setIsUploaded(true);
       }
@@ -217,6 +223,7 @@ function UploadFile() {
 
   return (
     <div>
+      {myState.Loading ? <AlertSnackbar open={true} message="Loading" severity="warning"/> : null}
       {myState.FileError ? <AlertSnackbar open={true} message="Error reading file" severity="error"/> : null}
       {myState.FileExtError ? <AlertSnackbar open={true} message="Unsupported file type! csv or xlsx only" severity="error"/> : null}
       {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
@@ -226,7 +233,7 @@ function UploadFile() {
       </div>}
         {isUploaded ? <Plot
           data={graphDataFinal}
-          layout={ {width: 900, height: 500, title: ''} }
+          layout={ {width: 1100, height: 700, title: ''} }
         /> : null}
         <br></br>
         {isUploaded ? <a onClick={RefreshPage} href="#">Load New Graph</a> : null}

@@ -59,11 +59,50 @@ function LoginForm() {
     function handlePass(event) {
       setFormPass(event.target.value);
     }
+
+    React.useEffect(() => {
+      AutoLogin();
+    }, [])
+
+    function AutoLogin() {
+      var token = localStorage.getItem('session-id');
+      if (token != null) {
+        setMyState({Loading: true, tryLogin: true})
+        var url = SERVERIP + 'autologin';
+        fetch(url, {
+            headers: {
+              'Authorization': token
+              // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          })
+            .then(res => res.json())
+            .then(
+              (result) => {
+                if (result.Success) {
+                  setMyState({Loading: false, tryLogin: false})
+                  navigate("../dashboard", { replace: true });
+                } else {
+                  setMyState({Loading: false, tryLogin: false, autoLoginFail: true})
+                  setTimeout(() => setMyState({autoLoginFail: false}), 3000);
+                }
+              },
+              // Note: it's important to handle errors here
+              // instead of a catch() block so that we don't swallow
+              // exceptions from actual bugs in components.
+              (error) => {
+                console.log(error);
+              }
+            )
+        return
+      }
+    }
   
     return (
       <div>
         {myState.PasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
         {myState.UserError ? <AlertSnackbar open={true} message="User not found!" severity="error"/> : null}
+        {myState.tryLogin ? <AlertSnackbar open={true} message="Trying to restore previous login session..." severity="warning"/> : null}
+        {myState.autoLoginFail ? <AlertSnackbar open={true} message="Could not restore previous session! Login again" severity="error"/> : null}
         <form className="formStyle7">
           <ul>
             <li>
