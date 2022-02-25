@@ -220,10 +220,18 @@ function UploadFile() {
     }
   }
 
+  function GraphListFunc() {
+    if (graphList != null) {
+      return graphList.map((graph, index) => { return ( <tr key={index}><td>{graph._id}</td><td>{graph.Timestamp}</td><td><Tooltip2 title="View Graph"><a onClick={() => ViewPastGraph(graph._id)} href="#"><img className="icon" src="images/eye-arrow-right.png"></img></a></Tooltip2></td><td><Tooltip2 title="Delete Graph"><a onClick={() => DeleteGraphPost(graph._id)} href="#"><img className="icon" src="images/delete.png"></img></a></Tooltip2></td></tr>)})
+    } else {
+      return <tr><td>No graphs in database</td><td></td><td></td><td></td></tr>
+    }
+  }
+
   return (
     <div>
       {myState.Loading ? <AlertSnackbar open={true} message="Loading" severity="warning"/> : null}
-      {myState.FileError ? <AlertSnackbar open={true} message="Error reading file" severity="error"/> : null}
+      {myState.FileError ? <AlertSnackbar open={true} message="Error reading file! See About & Help" severity="error"/> : null}
       {myState.FileExtError ? <AlertSnackbar open={true} message="Unsupported file type! csv or xlsx only" severity="error"/> : null}
       {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
       {myState.GraphDeleted ? <AlertSnackbar open={true} message="Graph deleted!" severity="success"/> : null}
@@ -256,7 +264,7 @@ function UploadFile() {
               </tr>
             </thead>
             <tbody>
-              {graphList.map((graph, index) => { return ( <tr key={index}><td>{graph._id}</td><td>{graph.Timestamp}</td><td><Tooltip2 title="View Graph"><a onClick={() => ViewPastGraph(graph._id)} href="#"><img className="icon" src="images/eye-arrow-right.png"></img></a></Tooltip2></td><td><Tooltip2 title="Delete Graph"><a onClick={() => DeleteGraphPost(graph._id)} href="#"><img className="icon" src="images/delete.png"></img></a></Tooltip2></td></tr>)})}
+            <GraphListFunc />
             </tbody>
           </table></div>}
     </div>

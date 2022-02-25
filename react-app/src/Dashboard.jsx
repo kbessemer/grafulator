@@ -6,12 +6,11 @@ import PermanentDrawerRight from "./components/Drawer";
 function Dashboard() {
   return (
     <div>
-      <div className="App">
-        <header className="App-header">
-          <PermanentDrawerRight />
-          <UploadFile />
-        </header>
+      <div className="logo">
+        <img src="images/opteev_logo.png" width="235" height="42" alt="logo" />
       </div>
+      <PermanentDrawerRight />
+      <UploadFile />
     </div>
   );
 }

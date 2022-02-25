@@ -619,6 +619,7 @@ func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params
 
 	type DeleteUser struct {
 		Username string `json:"Username"`
+		Token    string `json:"Token"`
 	}
 
 	// Declare a new NewUser struct.
@@ -634,6 +635,26 @@ func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params
 
 	// Setup username and password variables from request body
 	username := p1.Username
+	token := p1.Token
+
+	tokenUser := GetTokenUsername(token)
+
+	if tokenUser == username {
+		response := ResponseError{
+			Success: false,
+			Error:   "Can not delete self",
+		}
+
+		// Marshal into JSON
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Send error response to user in JSON
+		fmt.Fprintf(w, "%s\n", responseJson)
+		return
+	}
 
 	// Load the env file
 	err = godotenv.Load("variables.env")
@@ -1012,7 +1033,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 								}
 							}
 						} else {
-							fmt.Println("Inside: Line is not empty")
+							fmt.Println("Inside: Line is empty")
 							for x, field2 := range col {
 								if x != 0 {
 									myData.Labels = append(myData.Labels, field2)

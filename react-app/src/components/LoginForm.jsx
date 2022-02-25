@@ -99,6 +99,7 @@ function LoginForm() {
   
     return (
       <div>
+        <img src="images/opteev_logo.png" width="235" height="42" alt="logo" />
         {myState.PasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
         {myState.UserError ? <AlertSnackbar open={true} message="User not found!" severity="error"/> : null}
         {myState.tryLogin ? <AlertSnackbar open={true} message="Trying to restore previous login session..." severity="warning"/> : null}

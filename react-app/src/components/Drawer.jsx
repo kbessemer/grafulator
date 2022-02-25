@@ -10,6 +10,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import GroupIcon from '@mui/icons-material/Group';
 import LogoutIcon from '@mui/icons-material/Logout';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import InfoIcon from '@mui/icons-material/Info';
 import { Link } from "react-router-dom";
 
 const drawerWidth = 240;
@@ -60,6 +61,15 @@ export default function PermanentDrawerRight() {
                 </ListItem>
             </Link>
 
+            <Link style={{ textDecoration: "none", color: "white" }} to="/about">
+                <ListItem button key="about">
+                    <ListItemIcon>
+                        <InfoIcon style={{ color: "white" }}/>
+                    </ListItemIcon>
+                    <ListItemText primary="About & Help" />
+                </ListItem>
+            </Link>
+
             <Link style={{ textDecoration: "none", color: "white" }} to="/signout">
                 <ListItem button key="signout">
                     <ListItemIcon>
@@ -68,6 +78,7 @@ export default function PermanentDrawerRight() {
                     <ListItemText primary="Sign Out" />
                 </ListItem>
             </Link>
+
         </List>
       </Drawer>
     </Box>

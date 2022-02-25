@@ -66,6 +66,9 @@ function LoginForm() {
   
     return (
       <div>
+        <div className="logo">
+          <img src="images/opteev_logo.png" width="235" height="42" alt="logo" />
+        </div>
         <PermanentDrawerRight />
         {myState.PasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
         {myState.PasswordMismatch ? <AlertSnackbar open={true} message="New passwords do not match!" severity="error"/> : null}

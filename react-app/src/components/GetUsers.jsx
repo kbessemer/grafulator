@@ -25,13 +25,15 @@ function GetUsers() {
     function DeleteUserPost(username) {
       setMyState({Loading: true})
       var url = SERVERIP + 'deleteuser';
+      var token = localStorage.getItem('session-id')
       fetch(url, {
         method: 'post',
         body: JSON.stringify({
           username: username,
+          Token: token,
         }),
         headers: {
-          'Authorization': localStorage.getItem('session-id')
+          'Authorization': token
           // 'Content-Type': 'application/x-www-form-urlencoded',
         },
       }).then(response => response.json())
@@ -45,6 +47,9 @@ function GetUsers() {
               setMyState({SessionError: true, Loading: false})
               setTimeout(() => setMyState({SessionError: false}), 3000);
               return
+            } else if (json.Error === "Can not delete self") {
+              setMyState({DeleteSelfError: true, Loading: false})
+              setTimeout(() => setMyState({DeleteSelfError: false}), 3000);
             }
         }
       });
@@ -122,6 +127,7 @@ function GetUsers() {
           {myState.PasswordMismatch ? <AlertSnackbar open={true} message="Passwords do not match!" severity="error"/> : null}
           {myState.UserExists ? <AlertSnackbar open={true} message="User already exists!" severity="error"/> : null}
           {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
+          {myState.DeleteSelfError ? <AlertSnackbar open={true} message="You can not delete yourself!" severity="error"/> : null}
           {myState.UserDeleted ? <AlertSnackbar open={true} message="User deleted!" severity="success"/> : null}
           {myState.UserAdded ? <AlertSnackbar open={true} message="User added!" severity="success"/> : null}
           <input className="add-user" type="submit" value="ADD USER" onClick={handleOpen}/>
