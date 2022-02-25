@@ -29,7 +29,7 @@ export const GlobalStyles = createGlobalStyle`
   .logo {
     position: relative;
     margin-left: 100px;
-    margin-top: 0;
+    margin-top: 5px;
   }
   .theme {
     position: absolute;
