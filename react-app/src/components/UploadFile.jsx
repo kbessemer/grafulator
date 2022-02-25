@@ -31,7 +31,6 @@ ChartJS.register(
 function UploadFile() {
 
   const [graphDataFinal, setGraphDataFinal] = React.useState(null);
-  const [graphLabels, setGraphLabels] = React.useState(null);
   const [isUploaded, setIsUploaded] = React.useState(false);
   const [graphList, setGraphList] = React.useState([]);
   const [myState, setMyState] = React.useState({});
@@ -94,7 +93,7 @@ function UploadFile() {
   function DrawGraph(data, labels) {
     var graphDataSets = [];
     console.log("Draw Graph Executed")
-    setGraphLabels(labels);
+    console.log(typeof(labels[0]));
     for (var x in data) {
       const randomColor = Math.floor(Math.random()*16777215).toString(16);
       var color = "#" + randomColor;
@@ -107,7 +106,7 @@ function UploadFile() {
   function DrawGraph2(data, labels) {
     var graphDataSets = [];
     console.log("Draw Graph Executed")
-    setGraphLabels(labels);
+    console.log(typeof(labels[0]));
     for (var x in data) {
       const randomColor = Math.floor(Math.random()*16777215).toString(16);
       var color = "#" + randomColor;
@@ -233,7 +232,7 @@ function UploadFile() {
       </div>}
         {isUploaded ? <Plot
           data={graphDataFinal}
-          layout={ {width: 1100, height: 700, title: ''} }
+          layout={ {width: 1100, height: 700, title: '', xaxis: {'type': 'category'}} }
         /> : null}
         <br></br>
         {isUploaded ? <a onClick={RefreshPage} href="#">Load New Graph</a> : null}
