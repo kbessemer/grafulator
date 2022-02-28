@@ -18,6 +18,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
+	"github.com/tealeg/xlsx"
 	"github.com/xuri/excelize/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -318,6 +319,44 @@ func GetTokenUsername(token string) string {
 	}
 
 	return result.Username
+}
+
+func generateXLSXFromCSV(csvPath string, XLSXPath string, delimiter string) error {
+	csvFile, err := os.Open(csvPath)
+	if err != nil {
+		return err
+	}
+	defer csvFile.Close()
+	reader := csv.NewReader(csvFile)
+	if len(delimiter) > 0 {
+		reader.Comma = rune(delimiter[0])
+	} else {
+		reader.Comma = rune(';')
+	}
+	xlsxFile := xlsx.NewFile()
+	sheet, err := xlsxFile.AddSheet("Sheet1")
+	if err != nil {
+		return err
+	}
+	fields, err := reader.Read()
+	for err == nil {
+		row := sheet.AddRow()
+		for _, field := range fields {
+			if field == "" {
+				newField := "none"
+				cell := row.AddCell()
+				cell.Value = newField
+			} else {
+				cell := row.AddCell()
+				cell.Value = field
+			}
+		}
+		fields, err = reader.Read()
+	}
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+	return xlsxFile.Save(XLSXPath)
 }
 
 // Route: Login, Protected by BasicAuth, takes a username and password in request body
@@ -876,29 +915,10 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	if handler.Header.Get("Content-Type") == "text/csv" {
-		// open file
-		fi, err := os.Open(path)
-		if err != nil {
-			fmt.Println(err)
-			response := ResponseError{
-				Success: false,
-				Error:   "Error opening file",
-			}
 
-			// Marshal into JSON
-			responseJson, err := json.Marshal(response)
-			if err != nil {
-				fmt.Println(err)
-			}
+		xlsxPath := "uploads/" + ext[0] + ".xlsx"
 
-			// Send error response to the user in JSON, then return
-			fmt.Fprintf(w, "%s\n", responseJson)
-			return
-		}
-
-		// read csv values using csv.Reader
-		csvReader := csv.NewReader(fi)
-		data, err := csvReader.ReadAll()
+		err := generateXLSXFromCSV(path, xlsxPath, ",")
 		if err != nil {
 			fmt.Println(err)
 			response := ResponseError{
@@ -919,55 +939,114 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 		noHeader := false
 
-		for i, line := range data {
+		fxlsx, err := excelize.OpenFile(xlsxPath)
+		if err != nil {
+			fmt.Println(err)
+			response := ResponseError{
+				Success: false,
+				Error:   "Error opening file",
+			}
+
+			// Marshal into JSON
+			responseJson, err := json.Marshal(response)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Send error response to the user in JSON, then return
+			fmt.Fprintf(w, "%s\n", responseJson)
+			return
+		}
+
+		// Get all the rows in the Sheet1.
+		cols, err := fxlsx.GetCols("Sheet1")
+		if err != nil {
+			fmt.Println(err)
+			response := ResponseError{
+				Success: false,
+				Error:   "Error opening file",
+			}
+
+			// Marshal into JSON
+			responseJson, err := json.Marshal(response)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Send error response to the user in JSON, then return
+			fmt.Fprintf(w, "%s\n", responseJson)
+			return
+		}
+
+		for i, col := range cols {
 
 			if i == 0 {
-				for j, field := range line {
-					if j == 1 {
-						_, err := strconv.ParseFloat(field, 64)
-						if err != nil {
-							for x, field2 := range line {
+				for j, field := range col {
+					if j == 0 {
+						if field != "none" {
+							fmt.Println("\n", field)
+							fmt.Printf("%T\n", field)
+							fmt.Println(field[1])
+							if !unicode.IsLetter(rune(field[1])) {
+								fmt.Println("Inside: Is Not Letter")
+								noHeader = true
+								for _, field2 := range col {
+									myData.Labels = append(myData.Labels, field2)
+								}
+							} else {
+								fmt.Println("Inside: Is Letter")
+								for x, field2 := range col {
+									if x != 0 {
+										myData.Labels = append(myData.Labels, field2)
+									}
+								}
+							}
+						} else {
+							fmt.Println("Inside: Line is empty")
+							for x, field2 := range col {
 								if x != 0 {
 									myData.Labels = append(myData.Labels, field2)
 								}
 							}
-						} else {
-							noHeader = true
-							for x, field2 := range line {
-								if x == 0 {
-									myLine.Label = field2
-								} else {
-									myLine.Data = append(myLine.Data, field2)
-								}
-							}
-							myData.Data = append(myData.Data, myLine)
 						}
 					}
 				}
 			} else {
-				for j, field := range line {
-					if j == 0 {
-						myLine.Label = field
-					} else {
+				if noHeader {
+					fmt.Println("Inside No Header")
+					for _, field := range col {
+						myLine.Label = strconv.Itoa(i)
 						myLine.Data = append(myLine.Data, field)
 					}
+					myLine.BorderColor = "none"
+					myLine.BackgroundColor = "none"
+					myData.Data = append(myData.Data, myLine)
+				} else {
+					fmt.Println("Inside Has Header")
+					for j, field := range col {
+						if j == 0 {
+							myLine.Label = field
+						} else {
+							myLine.Data = append(myLine.Data, field)
+						}
+					}
+					myLine.BorderColor = "none"
+					myLine.BackgroundColor = "none"
+					myData.Data = append(myData.Data, myLine)
 				}
-				myLine.BorderColor = "none"
-				myLine.BackgroundColor = "none"
-			}
-			if i != 0 {
-				myData.Data = append(myData.Data, myLine)
 			}
 			myLine.Data = []string{}
-			if noHeader == true {
-				myData.Labels = append(myData.Labels, strconv.Itoa(i))
-			}
 		}
 
 		myFile.Data = myData
 		myFile.Success = true
 
-		fi.Close()
+		fxlsx.Close()
+
+		err = os.Remove(xlsxPath)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 	} else {
 
@@ -1018,6 +1097,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 				for j, field := range col {
 					if j == 0 {
 						if field != "" {
+							fmt.Printf("%T\n", field[0])
 							if !unicode.IsLetter(rune(field[0])) {
 								fmt.Println("Inside: Is Not Letter")
 								noHeader = true

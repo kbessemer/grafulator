@@ -1,32 +1,8 @@
 import React from 'react';
-import { Line } from 'react-chartjs-2';
 import Tooltip2 from '@mui/material/Tooltip';
 import AlertSnackbar from './alerts/AlertSnackbar';
 import Plot from 'react-plotly.js';
 import SERVERIP from '../constants.js';
-import Box from '@mui/material/Box';
-import { LinearProgress } from '@mui/material';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js'
-import { Chart } from 'react-chartjs-2'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-)
 
 function UploadFile() {
 
@@ -34,6 +10,7 @@ function UploadFile() {
   const [isUploaded, setIsUploaded] = React.useState(false);
   const [graphList, setGraphList] = React.useState([]);
   const [myState, setMyState] = React.useState({});
+  const [plotSize, setPlotSize] = React.useState({});
 
   function dropHandler(ev) {
     setMyState({Loading: true})
@@ -94,6 +71,7 @@ function UploadFile() {
     var graphDataSets = [];
     console.log("Draw Graph Executed")
     console.log(typeof(labels[0]));
+    setPlotSize({width: 1100, height: 700});
     for (var x in data) {
       const randomColor = Math.floor(Math.random()*16777215).toString(16);
       var color = "#" + randomColor;
@@ -228,6 +206,26 @@ function UploadFile() {
     }
   }
 
+  function toggleFullscreen() {
+    setPlotSize({width: window.screen.width, height: window.screen.height});
+    document.getElementById("myPlot").requestFullscreen().catch(console.log());
+
+    var el = document.getElementById('myPlot');
+    el.addEventListener('fullscreenchange', fullscreenchanged);
+  }
+
+  function fullscreenchanged(event) {
+    // document.fullscreenElement will point to the element that
+    // is in fullscreen mode if there is one. If not, the value
+    // of the property is null.
+    if (document.fullscreenElement) {
+      console.log(`Element: ${document.fullscreenElement.id} entered fullscreen mode.`);
+    } else {
+      console.log('Leaving fullscreen mode.');
+      setPlotSize({width: 1100, height: 700});
+    }
+  };
+  
   return (
     <div>
       {myState.Loading ? <AlertSnackbar open={true} message="Loading" severity="warning"/> : null}
@@ -238,12 +236,12 @@ function UploadFile() {
       {isUploaded ? null : <div id="dropZone" onDrop={dropHandler} onDragOver={dragOverHandler}>
         <p className="dropZone">Drag one or more files to upload and generate a graph</p>
       </div>}
-        {isUploaded ? <Plot
+        {isUploaded ? <div id="myPlot"><Plot
           data={graphDataFinal}
-          layout={ {width: 1100, height: 700, title: '', xaxis: {'type': 'category'}} }
-        /> : null}
+          layout={ {width: plotSize.width, height: plotSize.height, title: '', xaxis: {'type': 'category'}} }
+        /></div> : null}
         <br></br>
-        {isUploaded ? <a onClick={RefreshPage} href="#">Load New Graph</a> : null}
+        {isUploaded ? <div><a onClick={RefreshPage} href="#">Load New Graph</a><br></br><a onClick={toggleFullscreen} href="#">Enter Fullscreen</a></div> : null}
         {isUploaded ? null : <div><form className="formStyle8">
               <ul>
                 <li>

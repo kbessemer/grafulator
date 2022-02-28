@@ -1,57 +1,49 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
 
-	"github.com/xuri/excelize/v2"
+	"github.com/tealeg/xlsx"
 )
 
 func main() {
-	ParseFile()
+	err := generateXLSXFromCSV("../uploads/NoHeader.csv", "../uploads/NoHeader.xlsx", ",")
+	if err != nil {
+		fmt.Println(err)
+	}
 
 }
 
-func ParseFile() {
-
-	type MyLine struct {
-		Label           string   `json:"label"`
-		Data            []string `json:"data"`
-		BorderColor     string   `json:"borderColor"`
-		BackgroundColor string   `json:"backgroundColor"`
-	}
-
-	type MyData struct {
-		Labels []string `json:"labels"`
-		Data   []MyLine `json:"data"`
-	}
-
-	type MyFile struct {
-		Success bool   `json:"Success"`
-		Data    MyData `json:"data"`
-	}
-
-	fxlsx, err := excelize.OpenFile("../uploads/NoHeader.xlsx")
+func generateXLSXFromCSV(csvPath string, XLSXPath string, delimiter string) error {
+	csvFile, err := os.Open(csvPath)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
-
-	// Get all the rows in the Sheet1.
-	cols, err := fxlsx.GetCols("Sheet1")
+	defer csvFile.Close()
+	reader := csv.NewReader(csvFile)
+	if len(delimiter) > 0 {
+		reader.Comma = rune(delimiter[0])
+	} else {
+		reader.Comma = rune(';')
+	}
+	xlsxFile := xlsx.NewFile()
+	sheet, err := xlsxFile.AddSheet("Sheet1")
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
-
-	for i, line := range cols {
-
-		if i == 0 {
-			for _, field := range line {
-				fmt.Println(field)
-			}
+	fields, err := reader.Read()
+	for err == nil {
+		row := sheet.AddRow()
+		for _, field := range fields {
+			cell := row.AddCell()
+			cell.Value = field
 		}
-
+		fields, err = reader.Read()
 	}
-
-	fxlsx.Close()
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+	return xlsxFile.Save(XLSXPath)
 }
