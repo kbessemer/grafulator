@@ -18,7 +18,13 @@ function LoginForm() {
     };
   
     function PasswordPost(event) {
+      event.preventDefault();
       setMyState({Loading: true})
+      if (formPass === "" || formNewPass === "" || formNewPass2 === "") {
+        setMyState({Loading: false, FieldsError: true})
+        setTimeout(() => setMyState({FieldsError: false}), 3000);
+        return
+      }
       if (formNewPass != formNewPass2) {
         setMyState({Loading: false, PasswordMismatch: true})
         event.preventDefault();
@@ -37,7 +43,7 @@ function LoginForm() {
       .then(json => {
         if (json.Success) {
           setMyState({Loading: false, Success: true})
-            setTimeout(() => setMyState({Success: false}), 3000);
+          setTimeout(() => setMyState({Success: false}), 3000);
         } else {
           if (json.Error === "Bad password") {
             setMyState({Loading: false, PasswordError: true})
@@ -48,8 +54,6 @@ function LoginForm() {
           }
         }
       });
-  
-      event.preventDefault();
     }
   
     function handlePass(event) {
@@ -67,9 +71,10 @@ function LoginForm() {
     return (
       <div>
         <div className="logo">
-          <img src="images/opteev_logo.png" width="235" height="42" alt="logo" />
+          <img src="images/logo.png"></img>
         </div>
         <PermanentDrawerRight />
+        {myState.FieldsError ? <AlertSnackbar open={true} message="All fields required!" severity="error"/> : null}
         {myState.PasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
         {myState.PasswordMismatch ? <AlertSnackbar open={true} message="New passwords do not match!" severity="error"/> : null}
         {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}

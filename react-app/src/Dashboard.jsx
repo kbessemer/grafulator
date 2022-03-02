@@ -7,7 +7,7 @@ function Dashboard() {
   return (
     <div>
       <div className="logo">
-        <img src="images/opteev_logo.png" width="235" height="42" alt="logo" />
+        <img src="images/logo.png"></img>
       </div>
       <PermanentDrawerRight />
       <UploadFile />

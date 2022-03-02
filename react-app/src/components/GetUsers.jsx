@@ -69,7 +69,13 @@ function GetUsers() {
       };
     
       function AddUserPost(event) {
+        event.preventDefault();
         setMyState({Loading: true})
+        if (formUser === "" || formPass === "" || formPass2 === "") {
+          setMyState({Loading: false, FieldsError: true})
+          setTimeout(() => setMyState({FieldsError: false}), 3000);
+          return
+        }
         if (formPass != formPass2) {
             handleClose();
             setMyState({PasswordMismatch: true, Loading: false});
@@ -106,8 +112,6 @@ function GetUsers() {
               }
           }
         });
-    
-        event.preventDefault();
       }
     
       function handleUser(event) {
@@ -124,6 +128,7 @@ function GetUsers() {
 
       return (
         <div>
+          {myState.FieldsError ? <AlertSnackbar open={true} message="All fields required!" severity="error"/> : null}
           {myState.PasswordMismatch ? <AlertSnackbar open={true} message="Passwords do not match!" severity="error"/> : null}
           {myState.UserExists ? <AlertSnackbar open={true} message="User already exists!" severity="error"/> : null}
           {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
@@ -178,7 +183,15 @@ function GetUsers() {
           .then(res => res.json())
           .then(
             (result) => {
-              setUserList(result.Data);
+              if (result.Success) {
+                setUserList(result.Data);
+              } else {
+                if (result.Error == "Bad token") {
+                  setMyState({SessionError: true})
+                  setTimeout(() => setMyState({SessionError: false}), 3000);
+                  return
+                }
+              }
             },
             // Note: it's important to handle errors here
             // instead of a catch() block so that we don't swallow

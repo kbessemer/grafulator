@@ -19,7 +19,13 @@ function LoginForm() {
     };
   
     function LoginPost(event) {
+      event.preventDefault();
       setMyState({Loading: true});
+      if (formUser === "" || formPass === "") {
+        setMyState({Loading: false, FieldsError: true})
+        setTimeout(() => setMyState({FieldsError: false}), 3000);
+        return
+      }
       let user = 'kyle';
       let pass = 'bessemer!';
       let auth = 'Basic ' + new Buffer(user + ':' + pass).toString('base64')
@@ -48,8 +54,6 @@ function LoginForm() {
           }
         }
       });
-  
-      event.preventDefault();
     }
   
     function handleUser(event) {
@@ -99,7 +103,8 @@ function LoginForm() {
   
     return (
       <div>
-        <img src="images/opteev_logo.png" width="235" height="42" alt="logo" />
+        <img src="images/logo.png" alt="logo" />
+        {myState.FieldsError ? <AlertSnackbar open={true} message="All fields required!" severity="error"/> : null}
         {myState.PasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
         {myState.UserError ? <AlertSnackbar open={true} message="User not found!" severity="error"/> : null}
         {myState.tryLogin ? <AlertSnackbar open={true} message="Trying to restore previous login session..." severity="warning"/> : null}

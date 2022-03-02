@@ -6,11 +6,12 @@ import SERVERIP from '../constants.js';
 
 function UploadFile() {
 
-  const [graphDataFinal, setGraphDataFinal] = React.useState(null);
-  const [isUploaded, setIsUploaded] = React.useState(false);
+  const [graphDataFinal, setGraphDataFinal] = React.useState({});
   const [graphList, setGraphList] = React.useState([]);
   const [myState, setMyState] = React.useState({});
   const [plotSize, setPlotSize] = React.useState({});
+  const [rangeStart, setRangeStart] = React.useState();
+  const [rangeStop, setRangeStop] = React.useState();
 
   function dropHandler(ev) {
     setMyState({Loading: true})
@@ -34,13 +35,16 @@ function UploadFile() {
         .then(
           (result) => {
             if (result.Success) {
-              setMyState({Loading: false})
               DrawGraph(result.data.data, result.data.labels);
-              setIsUploaded(true);
+              GetGraphList();
             } else {
               if (result.Error == 'Bad extension') {
                 setMyState({FileExtError: true, Loading: false});
                 setTimeout(() => setMyState({FileExtError: false}), 3000);
+                return
+              } else if (result.Error === "Bad token") {
+                setMyState({SessionError: true, Loading: false})
+                setTimeout(() => setMyState({SessionError: false}), 3000);
                 return
               } else {
                 setMyState({FileError: true, Loading: false});
@@ -70,28 +74,36 @@ function UploadFile() {
   function DrawGraph(data, labels) {
     var graphDataSets = [];
     console.log("Draw Graph Executed")
-    console.log(typeof(labels[0]));
     setPlotSize({width: 1100, height: 700});
     for (var x in data) {
       const randomColor = Math.floor(Math.random()*16777215).toString(16);
       var color = "#" + randomColor;
-      console.log(data[x]);
       graphDataSets.push({type: 'line', name: data[x].label, mode: 'lines+markers', marker: {color: color}, x: labels, y: data[x].data});
     }
-    setGraphDataFinal(graphDataSets);
+    setGraphDataFinal({data: graphDataSets, data2: graphDataSets, labels: labels});
+    setMyState({Loading: false, isUploaded: true})
   }
 
-  function DrawGraph2(data, labels) {
+  function GraphRange(start, stop) {
+    console.log("Start:");
+    console.log(start);
+    console.log("Stop:");
+    console.log(stop);
     var graphDataSets = [];
-    console.log("Draw Graph Executed")
-    console.log(typeof(labels[0]));
-    for (var x in data) {
+    var labels = [];
+    for (var x = start; x <= stop; x++) {
+      labels.push(graphDataFinal.labels[x])
+    }
+    for (var x in graphDataFinal.data) {
+      var rangeData = [];
+      for (var y = start; y <= stop; y++) {
+        rangeData.push(graphDataFinal.data[x].y[y])
+      }
       const randomColor = Math.floor(Math.random()*16777215).toString(16);
       var color = "#" + randomColor;
-      console.log(data[x]);
-      graphDataSets.push({type: 'line', name: data[x].label, mode: 'lines+markers', marker: {color: color}, x: labels, y: data[x].data});
+      graphDataSets.push({type: 'line', name: graphDataFinal.data[x].name, mode: 'lines+markers', marker: {color: color}, x: labels, y: rangeData});
     }
-    setGraphDataFinal(graphDataSets);
+    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataSets, labels: graphDataFinal.labels});
   }
 
   React.useEffect(() => {
@@ -109,7 +121,15 @@ function UploadFile() {
         .then(res => res.json())
         .then(
           (result) => {
-            setGraphList(result.Data);
+            if (result.Success) {
+              setGraphList(result.Data);
+            } else {
+              if (result.Error == "Bad token") {
+                setMyState({SessionError: true})
+                setTimeout(() => setMyState({SessionError: false}), 3000);
+                return
+              }
+            }
           },
           // Note: it's important to handle errors here
           // instead of a catch() block so that we don't swallow
@@ -137,9 +157,13 @@ function UploadFile() {
     }).then(response => response.json())
     .then(json => {
       if (json.Success) {
-        setMyState({Loading: false})
-        DrawGraph2(json.Data.GraphData.data, json.Data.GraphData.labels);
-        setIsUploaded(true);
+        DrawGraph(json.Data.GraphData.data, json.Data.GraphData.labels);
+      } else {
+        if (json.Error == "Bad token") {
+          setMyState({SessionError: true, Loading: false})
+          setTimeout(() => setMyState({SessionError: false}), 3000);
+          return
+        }
       }
     });
   }
@@ -170,10 +194,6 @@ function UploadFile() {
           }
       }
     });
-  }
-
-  function RefreshPage() {
-    window.location.reload();
   }
 
   function FilterTable() {
@@ -225,6 +245,46 @@ function UploadFile() {
       setPlotSize({width: 1100, height: 700});
     }
   };
+
+  function rangeStartFunction() {
+    document.getElementById("myDropdown").classList.toggle("show");
+  }
+  
+  function rangeStartFilter() {
+    var input, filter, div, txtValue, ul, li, a, i;
+    input = document.getElementById("rangeStartInput");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("myDropdown");
+    a = div.getElementsByTagName("a");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
+      }
+    }
+  }
+
+  function rangeStopFunction() {
+    document.getElementById("myDropdown2").classList.toggle("show");
+  }
+  
+  function rangeStopFilter() {
+    var input, filter, div, txtValue, ul, li, a, i;
+    input = document.getElementById("rangeStopInput");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("myDropdown2");
+    a = div.getElementsByTagName("a");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
+      }
+    }
+  }
   
   return (
     <div>
@@ -233,16 +293,37 @@ function UploadFile() {
       {myState.FileExtError ? <AlertSnackbar open={true} message="Unsupported file type! csv or xlsx only" severity="error"/> : null}
       {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
       {myState.GraphDeleted ? <AlertSnackbar open={true} message="Graph deleted!" severity="success"/> : null}
-      {isUploaded ? null : <div id="dropZone" onDrop={dropHandler} onDragOver={dragOverHandler}>
-        <p className="dropZone">Drag one or more files to upload and generate a graph</p>
-      </div>}
-        {isUploaded ? <div id="myPlot"><Plot
-          data={graphDataFinal}
+      {myState.isUploaded ? <div className="fullscreen"><br></br><br></br><a onClick={toggleFullscreen} href="#"><Tooltip2 title="Enter Fullscreen"><img className="icon" src="images/fullscreen.png"></img></Tooltip2></a></div> : null}
+      
+      {myState.isUploaded ? <div className="fullscreen"><div class="dropdown">
+            <button onClick={rangeStartFunction} class="dropbtn">Range Start</button>
+            <div id="myDropdown" class="dropdown-content">
+              <input type="text" placeholder="Search.." id="rangeStartInput" onKeyUp={rangeStartFilter}/>
+              {graphDataFinal.labels.map((label, index) => { return ( <a key={index} onClick={() => setRangeStart(index)}>{label}</a> )})}
+            </div>
+          </div>
+          <div class="dropdown">
+            <button onClick={rangeStopFunction} class="dropbtn">Range Stop</button>
+            <div id="myDropdown2" class="dropdown-content">
+              <input type="text" placeholder="Search.." id="rangeStopInput" onKeyUp={rangeStopFilter}/>
+              {graphDataFinal.labels.map((label, index) => { return ( <a key={index} onClick={() => setRangeStop(index)}>{label}</a> )})}
+            </div>
+          </div>
+          <input className="add-user" type="submit" value="VIEW RANGES" onClick={() => GraphRange(rangeStart, rangeStop)}/>
+        </div> : null}
+
+      {myState.isUploaded ? <div id="myPlot"><Plot
+          data={graphDataFinal.data2}
           layout={ {width: plotSize.width, height: plotSize.height, title: '', xaxis: {'type': 'category'}} }
         /></div> : null}
+
+        <br></br><br></br>
+        <div id="dropZone" onDrop={dropHandler} onDragOver={dragOverHandler}>
+          <p className="dropZone">Drag one or more files to upload and generate a graph</p>
+        </div>
+        
         <br></br>
-        {isUploaded ? <div><a onClick={RefreshPage} href="#">Load New Graph</a><br></br><a onClick={toggleFullscreen} href="#">Enter Fullscreen</a></div> : null}
-        {isUploaded ? null : <div><form className="formStyle8">
+        <div><form className="formStyle8">
               <ul>
                 <li>
                     <label htmlFor="myFilter">Search</label>
@@ -264,7 +345,7 @@ function UploadFile() {
             <tbody>
             <GraphListFunc />
             </tbody>
-          </table></div>}
+          </table></div>
     </div>
     )
 }
