@@ -274,6 +274,7 @@ export const GlobalStyles = createGlobalStyle`
 	border-bottom: 3px solid #5994FF;
 	border-radius: 3px;
 	color: #D2E2FF;
+	margin-right: 16px;
 }
 .add-user:hover {
 	background: #3059a2;
@@ -521,18 +522,19 @@ export const GlobalStyles = createGlobalStyle`
 	.moon {
 		filter: contrast(0%);
 	}
-	.fullscreen {
+	.left-margin {
 		margin-left: 40px;
 	}
 	/* Dropdown Button */
 	.dropbtn {
 	background-color: #2e363f;
-	color: white;
-	padding: 16px;
-	font-size: 16px;
+	color: #D2E2FF;
 	border: none;
 	cursor: pointer;
 	margin-right: 16px;
+	border: none;
+	padding: 10px 20px 10px 20px;
+	border-bottom: 3px solid #5994FF;
 	border-radius: 3px;
 	}
 
@@ -542,7 +544,7 @@ export const GlobalStyles = createGlobalStyle`
 	}
 
 	/* The search field */
-	#myInput {
+	#rangeStartInput, #rangeStopInput {
 	box-sizing: border-box;
 	background-image: url('searchicon.png');
 	background-position: 14px 12px;
@@ -554,7 +556,7 @@ export const GlobalStyles = createGlobalStyle`
 	}
 
 	/* The search field when it gets focus/clicked on */
-	#myInput:focus {outline: 3px solid #ddd;}
+	#rangeStartInput:focus, #rangeStopInput:focus {outline: 3px solid #ddd;}
 
 	/* The container <div> - needed to position the dropdown content */
 	.dropdown {
@@ -585,4 +587,12 @@ export const GlobalStyles = createGlobalStyle`
 
 	/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
 	.show {display:block;}
+	.statZone {
+	  background: #7d8697;
+	  border: 1px solid #2e363f;
+	  width:  650px;
+	  margin-top: 16px;
+	  border-radius: 3px;
+	  padding: 10px;
+  }
   `

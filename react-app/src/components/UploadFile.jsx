@@ -3,6 +3,7 @@ import Tooltip2 from '@mui/material/Tooltip';
 import AlertSnackbar from './alerts/AlertSnackbar';
 import Plot from 'react-plotly.js';
 import SERVERIP from '../constants.js';
+import Statistics from 'statistics.js';
 
 function UploadFile() {
 
@@ -12,6 +13,7 @@ function UploadFile() {
   const [plotSize, setPlotSize] = React.useState({});
   const [rangeStart, setRangeStart] = React.useState();
   const [rangeStop, setRangeStop] = React.useState();
+  const [statData, setStatData] = React.useState({});
 
   function dropHandler(ev) {
     setMyState({Loading: true})
@@ -80,7 +82,7 @@ function UploadFile() {
       var color = "#" + randomColor;
       graphDataSets.push({type: 'line', name: data[x].label, mode: 'lines+markers', marker: {color: color}, x: labels, y: data[x].data});
     }
-    setGraphDataFinal({data: graphDataSets, data2: graphDataSets, labels: labels});
+    setGraphDataFinal({data: graphDataSets, data2: graphDataSets, labels: labels, stats: false});
     setMyState({Loading: false, isUploaded: true})
   }
 
@@ -89,6 +91,7 @@ function UploadFile() {
     console.log(start);
     console.log("Stop:");
     console.log(stop);
+    var yLabels = [];
     var graphDataSets = [];
     var labels = [];
     for (var x = start; x <= stop; x++) {
@@ -101,9 +104,35 @@ function UploadFile() {
       }
       const randomColor = Math.floor(Math.random()*16777215).toString(16);
       var color = "#" + randomColor;
+      yLabels.push(graphDataFinal.data[x].name);
       graphDataSets.push({type: 'line', name: graphDataFinal.data[x].name, mode: 'lines+markers', marker: {color: color}, x: labels, y: rangeData});
     }
-    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataSets, labels: graphDataFinal.labels});
+    console.log(graphDataSets);
+    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataSets, labels: graphDataFinal.labels, yLabels: yLabels, range: true, stats: false});
+  }
+
+  function CalcStats(index) {
+    var data = [];
+    var statLength = graphDataFinal.data2[index].y.length - 1
+    for (var x = 0; x <= statLength; x++) {
+      console.log(parseFloat(graphDataFinal.data2[index].y[x]));
+      data.push({ID: x, value: parseFloat(graphDataFinal.data2[index].y[x])})
+    }
+    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data2, labels: graphDataFinal.labels, yLabels: graphDataFinal.yLabels, range: true, stats: true})
+
+    var columns = {
+      ID: 'ordinal',
+      value: 'interval',
+    }
+
+    var settings = {
+      excludeColumns: ["ID"],
+      suppressWarnings: true,
+    };
+
+    var stats = new Statistics(data, columns, settings);
+
+    setStatData({minimum: stats.minimum("value"), maximum: stats.maximum("value"), range: stats.range("value"), mean: stats.mean("value"), median: stats.median("value"), mode: stats.mode("value"), variance: stats.variance("value"), stddev: stats.standardDeviation("value"), co: stats.coefficientOfVariation("value")})
   }
 
   React.useEffect(() => {
@@ -285,6 +314,26 @@ function UploadFile() {
       }
     }
   }
+
+  function statFunction() {
+    document.getElementById("myDropdown3").classList.toggle("show");
+  }
+  
+  function statFilter() {
+    var input, filter, div, txtValue, ul, li, a, i;
+    input = document.getElementById("statInput");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("myDropdown3");
+    a = div.getElementsByTagName("a");
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].textContent || a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
+      }
+    }
+  }
   
   return (
     <div>
@@ -293,24 +342,55 @@ function UploadFile() {
       {myState.FileExtError ? <AlertSnackbar open={true} message="Unsupported file type! csv or xlsx only" severity="error"/> : null}
       {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
       {myState.GraphDeleted ? <AlertSnackbar open={true} message="Graph deleted!" severity="success"/> : null}
-      {myState.isUploaded ? <div className="fullscreen"><br></br><br></br><a onClick={toggleFullscreen} href="#"><Tooltip2 title="Enter Fullscreen"><img className="icon" src="images/fullscreen.png"></img></Tooltip2></a></div> : null}
+      {myState.isUploaded ? <div className="left-margin"><br></br><br></br><a onClick={toggleFullscreen} href="#"><Tooltip2 title="Enter Fullscreen"><img className="icon" src="images/fullscreen.png"></img></Tooltip2></a></div> : null}
       
-      {myState.isUploaded ? <div className="fullscreen"><div class="dropdown">
-            <button onClick={rangeStartFunction} class="dropbtn">Range Start</button>
+      {myState.isUploaded ? <div className="left-margin"><div class="dropdown">
+            <button onClick={rangeStartFunction} class="dropbtn">RANGE START</button>
             <div id="myDropdown" class="dropdown-content">
               <input type="text" placeholder="Search.." id="rangeStartInput" onKeyUp={rangeStartFilter}/>
               {graphDataFinal.labels.map((label, index) => { return ( <a key={index} onClick={() => setRangeStart(index)}>{label}</a> )})}
             </div>
           </div>
           <div class="dropdown">
-            <button onClick={rangeStopFunction} class="dropbtn">Range Stop</button>
+            <button onClick={rangeStopFunction} class="dropbtn">RANGE STOP</button>
             <div id="myDropdown2" class="dropdown-content">
               <input type="text" placeholder="Search.." id="rangeStopInput" onKeyUp={rangeStopFilter}/>
               {graphDataFinal.labels.map((label, index) => { return ( <a key={index} onClick={() => setRangeStop(index)}>{label}</a> )})}
             </div>
           </div>
           <input className="add-user" type="submit" value="VIEW RANGES" onClick={() => GraphRange(rangeStart, rangeStop)}/>
+          <input className="add-user" type="submit" value="RESET RANGES" onClick={() =>     setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data, labels: graphDataFinal.labels})}/>
         </div> : null}
+      <br/><br/>
+      {graphDataFinal.range ? <div className="left-margin"><div class="dropdown">
+            <button onClick={statFunction} class="dropbtn">VIEW STATISTICS</button>
+            <div id="myDropdown3" class="dropdown-content">
+              <input type="text" placeholder="Search.." id="statInput" onKeyUp={statFilter}/>
+              {graphDataFinal.yLabels.map((label, index) => { return ( <a key={index} onClick={() => CalcStats(index)}>{label}</a> )})}
+            </div>
+          </div>
+        </div> : null}
+
+      {graphDataFinal.stats ? <div className="left-margin statZone">
+      <strong>Minimum: </strong>{statData.minimum}
+      <br/>
+      <strong>Maximum: </strong>{statData.maximum}
+      <br/>
+      <strong>Range: </strong>{statData.range}
+      <br/>
+      <strong>Mean: </strong>{statData.mean}
+      <br/>
+      <strong>Median: </strong>{statData.median}
+      <br/>
+      <strong>Mode: </strong>{statData.mode}
+      <br/>
+      <strong>Variance: </strong>{statData.variance}
+      <br/>
+      <strong>Standard Deviation: </strong>{statData.stddev}
+      <br/>
+      <strong>Coefficient of Variation: </strong>{statData.co}
+      <br/>
+      </div> : null}
 
       {myState.isUploaded ? <div id="myPlot"><Plot
           data={graphDataFinal.data2}
