@@ -1,3 +1,9 @@
+// GRAFULATOR
+// Last Modified: March 3, 2022
+// Authored and Developed by: Kyle Bessemer
+// LinkedIn: https://www.linkedin.com/in/kyle-bessemer-606a7a1b2/
+// GitHub: https://github.com/kbessemer
+
 import React from 'react';
 import { Box, LinearProgress } from '@mui/material';
 import AlertSnackbar from './components/alerts/AlertSnackbar';

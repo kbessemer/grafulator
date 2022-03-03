@@ -1,3 +1,9 @@
+// GRAFULATOR
+// Last Modified: March 3, 2022
+// Authored and Developed by: Kyle Bessemer
+// LinkedIn: https://www.linkedin.com/in/kyle-bessemer-606a7a1b2/
+// GitHub: https://github.com/kbessemer
+
 package main
 
 import (
@@ -27,41 +33,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type ResponseLogin struct {
-	Success bool   `json:"Success"`
-	Data    string `json:"Data"`
-	Token   string `json:"Token"`
-}
-
+// Struct for a standard response in JSON format
 type ResponseStandard struct {
 	Success bool   `json:"Success"`
 	Data    string `json:"Data"`
 }
 
+// Struct for an error response in JSON format
 type ResponseError struct {
 	Success bool   `json:"Success"`
 	Error   string `json:"Error"`
 }
 
-type LoginType struct {
-	Username string `json:"Username"`
-	Password string `json:"Password"`
-}
-
-type TokenType struct {
-	Token string `json:"Token"`
-}
-
-type NewUser struct {
-	Username string `json:"Username"`
-	Password string `json:"Password"`
-}
-
+// Struct for JWT claims
 type MyCustomClaims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims
 }
 
+// JWT signing key
 var mySigningKey = []byte("jFi$9!949FSkjmcF@9$@(@fFJFl9(@!!")
 
 // Function for authenticating, BasicAuth, Enabled on login route
@@ -144,7 +134,7 @@ func createToken(user string) (string, error) {
 	claims := MyCustomClaims{
 		user,
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * 600).Unix(),
+			ExpiresAt: time.Now().Add(time.Minute * 1440).Unix(),
 			Issuer:    "test",
 		},
 	}
@@ -157,6 +147,7 @@ func createToken(user string) (string, error) {
 
 // Function for adding a new token to the database
 func AddToken(token string, username string) {
+	// Time settings
 	now := time.Now()
 	epoch := now.Unix()
 	expiration := epoch + 86400
@@ -194,7 +185,7 @@ func AddToken(token string, username string) {
 
 	// Query the database to see if the user already exists
 	err = coll.FindOne(context.TODO(), bson.D{{"Token", token}}).Decode(&result)
-	// Send error response if the user exists
+	// If the token exists in the database, update it
 	if err != mongo.ErrNoDocuments {
 		filter := bson.D{{"Token", token}}
 		update := bson.D{{"$set", bson.D{{"Username", username}, {"Expiration", expiration}}}}
@@ -205,7 +196,7 @@ func AddToken(token string, username string) {
 		return
 	}
 
-	// Insert the user into the database with the hashed password
+	// Insert the token into the database with the expiration
 	doc := bson.D{{"Username", username}, {"Token", token}, {"Expiration", expiration}}
 	_, err = coll.InsertOne(context.TODO(), doc)
 	if err != nil {
@@ -216,6 +207,13 @@ func AddToken(token string, username string) {
 
 // Function for checking token, for verifying a token is authentic, or not expired
 func CheckToken(token string) bool {
+	type TokenStruct struct {
+		Username   string `bson:"Username" json:"Username"`
+		Token      string `bson:"Token" json:"Token"`
+		Expiration int64  `bson:"Expiration" json:"Expiration"`
+	}
+
+	// Time settings
 	now := time.Now()
 	epoch := now.Unix()
 
@@ -231,7 +229,7 @@ func CheckToken(token string) bool {
 		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
-	// Connect go Mongo Database
+	// Connect to Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
 		fmt.Println(err)
@@ -247,32 +245,36 @@ func CheckToken(token string) bool {
 	// Set the database name and collection name
 	coll := client.Database("go_project1").Collection("tokens")
 
+	// A variable to put the database result into
+	var result TokenStruct
+
+	// Query the database for the provided username, send a error response if no user is found
+	err = coll.FindOne(context.TODO(), bson.D{{"Token", token}}).Decode(&result)
+	// If no token is found in database
+	if err == mongo.ErrNoDocuments {
+		return false
+	}
+
+	// Find expiration time of given token
+	expiration := result.Expiration
+
+	// Check if token is expired
+	if expiration <= epoch {
+		return false
+	}
+
+	// If all checks pass, return true, token valid
+	return true
+}
+
+func GetTokenUsername(token string) string {
+	// Struct for token database results
 	type TokenStruct struct {
 		Username   string `bson:"Username" json:"Username"`
 		Token      string `bson:"Token" json:"Token"`
 		Expiration int64  `bson:"Expiration" json:"Expiration"`
 	}
 
-	// A variable to put the database result into
-	var result TokenStruct
-
-	// Query the database for the provided username, send a error response if no user is found
-	err = coll.FindOne(context.TODO(), bson.D{{"Token", token}}).Decode(&result)
-	// If no document is found
-	if err == mongo.ErrNoDocuments {
-		return false
-	}
-
-	expiration := result.Expiration
-
-	if expiration <= epoch {
-		return false
-	}
-
-	return true
-}
-
-func GetTokenUsername(token string) string {
 	// Load the env file
 	err := godotenv.Load("variables.env")
 	if err != nil {
@@ -285,7 +287,7 @@ func GetTokenUsername(token string) string {
 		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
-	// Connect go Mongo Database
+	// Connect to Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
 		fmt.Println(err)
@@ -301,13 +303,6 @@ func GetTokenUsername(token string) string {
 	// Set the database name and collection name
 	coll := client.Database("go_project1").Collection("tokens")
 
-	// Struct for token database results
-	type TokenStruct struct {
-		Username   string `bson:"Username" json:"Username"`
-		Token      string `bson:"Token" json:"Token"`
-		Expiration int64  `bson:"Expiration" json:"Expiration"`
-	}
-
 	// A variable to put the database result into
 	var result TokenStruct
 
@@ -318,26 +313,41 @@ func GetTokenUsername(token string) string {
 		return ""
 	}
 
+	// Return the username found in the database
 	return result.Username
 }
 
+// Function for converting a csv file to xlsx
 func generateXLSXFromCSV(csvPath string, XLSXPath string, delimiter string) error {
+	// Open file
 	csvFile, err := os.Open(csvPath)
 	if err != nil {
 		return err
 	}
+
+	// Close file at the end of the function
 	defer csvFile.Close()
+
+	// Setup a csv reader for the file
 	reader := csv.NewReader(csvFile)
+
+	// Check or assign the delimiter
 	if len(delimiter) > 0 {
 		reader.Comma = rune(delimiter[0])
 	} else {
 		reader.Comma = rune(';')
 	}
+
+	// Create a new xlsx file
 	xlsxFile := xlsx.NewFile()
+
+	// Setup the sheet in the xlsx file
 	sheet, err := xlsxFile.AddSheet("Sheet1")
 	if err != nil {
 		return err
 	}
+
+	// Read the csv file, then write it to the xlsx file
 	fields, err := reader.Read()
 	for err == nil {
 		row := sheet.AddRow()
@@ -356,6 +366,8 @@ func generateXLSXFromCSV(csvPath string, XLSXPath string, delimiter string) erro
 	if err != nil {
 		fmt.Printf(err.Error())
 	}
+
+	// Return the path of the saved xlsx file
 	return xlsxFile.Save(XLSXPath)
 }
 
@@ -363,6 +375,17 @@ func generateXLSXFromCSV(csvPath string, XLSXPath string, delimiter string) erro
 func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Set content-type to JSON
 	w.Header().Set("Content-Type", "application/json")
+
+	type ResponseLogin struct {
+		Success bool   `json:"Success"`
+		Data    string `json:"Data"`
+		Token   string `json:"Token"`
+	}
+
+	type LoginType struct {
+		Username string `json:"Username"`
+		Password string `json:"Password"`
+	}
 
 	// Declare a new LoginType struct.
 	var p1 LoginType
@@ -391,7 +414,7 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
-	// Connect go Mongo Database
+	// Connect to Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
 		fmt.Println(err)
@@ -458,6 +481,7 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	now := time.Now()
 	timeFormat := fmt.Sprint(now.Month(), now.Day(), now.Year(), now.Hour(), ":", now.Minute())
 
+	// Update user's database with current last login time
 	filter := bson.D{{"username", username}}
 	update := bson.D{{"$set", bson.D{{"LastLogin", timeFormat}}}}
 	_, err = coll.UpdateOne(context.TODO(), filter, update)
@@ -471,12 +495,13 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		fmt.Println(err)
 	}
 
+	// Add token to database for future verification
 	AddToken(token, username)
 
 	// Setup ResponseLogin struct variable to provide in response
 	response := ResponseLogin{
 		Success: true,
-		Data:    "Logged In! " + username,
+		Data:    "Logged In!",
 		Token:   token,
 	}
 
@@ -537,19 +562,31 @@ func RouteGetUsers(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	cursor, err := coll.Find(context.TODO(), bson.D{})
 	// If no documents were found, send a response and return
 	if err == mongo.ErrNoDocuments {
-		fmt.Printf("No documents were found")
+		response := ResponseError{
+			Success: false,
+			Error:   "No users found",
+		}
+
+		// Marshal into JSON
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Send error response to the user in JSON, then return
+		fmt.Fprintf(w, "%s\n", responseJson)
 		return
 	}
 
 	// Setup a variable for the database results
 	var data []Data
 
-	// Send all database results to results variable
+	// Send all database results to data variable
 	if err = cursor.All(context.TODO(), &data); err != nil {
 		fmt.Println(err)
 	}
 
-	// Setup a variable with the ResponseStandard struct
+	// Setup a variable with the Response struct
 	response := Response{
 		Success: true,
 		Data:    data,
@@ -570,6 +607,11 @@ func RouteNewUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Set content-type to JSON
 	w.Header().Set("Content-Type", "application/json")
 
+	type NewUser struct {
+		Username string `json:"Username"`
+		Password string `json:"Password"`
+	}
+
 	// Declare a new NewUser struct.
 	var p1 NewUser
 
@@ -587,6 +629,22 @@ func RouteNewUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	// Hash the password and store it in a variable
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		response := ResponseError{
+			Success: false,
+			Error:   "Error hashing password",
+		}
+
+		// Marshal into JSON
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Send error response to the user in JSON, then return
+		fmt.Fprintf(w, "%s\n", responseJson)
+		return
+	}
 
 	// Load the env file
 	err = godotenv.Load("variables.env")
@@ -651,7 +709,7 @@ func RouteNewUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fmt.Fprintf(w, "%s\n", output)
 }
 
-// Route: New User, for creating a new user, adds user to database, password is hashed. Takes a username and password in the request body
+// Route: Delete User
 func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Set content-type to JSON
 	w.Header().Set("Content-Type", "application/json")
@@ -661,7 +719,7 @@ func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params
 		Token    string `json:"Token"`
 	}
 
-	// Declare a new NewUser struct.
+	// Declare a new DeleteUser struct.
 	var p1 DeleteUser
 
 	// Try to decode the request body into the struct. If there is an error,
@@ -676,8 +734,10 @@ func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	username := p1.Username
 	token := p1.Token
 
+	// Get information from the provided token: current user
 	tokenUser := GetTokenUsername(token)
 
+	// Check if user is trying to delete their own account
 	if tokenUser == username {
 		response := ResponseError{
 			Success: false,
@@ -723,6 +783,7 @@ func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	// Set the database name and collection name
 	coll := client.Database("go_project1").Collection("users")
 
+	// Delete the user from the database
 	filter := bson.D{{"username", username}}
 	_, err = coll.DeleteOne(context.TODO(), filter)
 	if err != nil {
@@ -745,7 +806,7 @@ func RouteMyPassword(w http.ResponseWriter, r *http.Request, p httprouter.Params
 		Session     string `json:"session"`
 	}
 
-	// Declare a new LoginType struct.
+	// Declare a new MyPass struct.
 	var p1 MyPass
 
 	// Try to decode the request body into the struct. If there is an error,
@@ -763,13 +824,30 @@ func RouteMyPassword(w http.ResponseWriter, r *http.Request, p httprouter.Params
 
 	// Hash the password and store it in a variable
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 14)
+	if err != nil {
+		response := ResponseError{
+			Success: false,
+			Error:   "Error hashing password",
+		}
 
+		// Marshal into JSON
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Send error response to user in JSON
+		fmt.Fprintf(w, "%s\n", responseJson)
+		return
+	}
+
+	// Get data from provided token: current user
 	username := GetTokenUsername(token)
 
 	if username == "" {
 		response := ResponseError{
 			Success: false,
-			Error:   "Invalid token",
+			Error:   "Invalid token, no user found",
 		}
 
 		// Marshal into JSON
@@ -795,7 +873,7 @@ func RouteMyPassword(w http.ResponseWriter, r *http.Request, p httprouter.Params
 		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
 	}
 
-	// Connect go Mongo Database
+	// Connect to Mongo Database
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
 		fmt.Println(err)
@@ -857,8 +935,12 @@ func RouteMyPassword(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	fmt.Fprintf(w, "%s\n", output)
 }
 
+// Route for uploading spreadsheet files to be analyed
 func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Set response type
+	w.Header().Set("Content-Type", "application/json")
 
+	// Max file size
 	r.ParseMultipartForm(16 * 1024 * 1024) // 16MB
 	file, handler, err := r.FormFile("file")
 	if err != nil {
@@ -871,7 +953,6 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	// Copy the file to the uploads directory
 	io.Copy(f, file)
-	w.Header().Set("Content-Type", "application/json")
 
 	type MyLine struct {
 		Label           string   `json:"label"`
@@ -890,14 +971,18 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		Data    MyData `json:"data"`
 	}
 
+	// Setup variable data holders with proper structs
 	var myLine MyLine
 	var myData MyData
 	var myFile MyFile
 
+	// Set path to uploaded file
 	path := "uploads/" + handler.Filename
 
+	// Check the file extension, only csv and xlsx allowed
 	ext := strings.Split(handler.Filename, ".")
 	if ext[1] != "csv" && ext[1] != "xlsx" {
+		// If file extension is not allowed, send error response
 		response := ResponseError{
 			Success: false,
 			Error:   "Bad extension",
@@ -914,10 +999,13 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
+	// Do this if it is a csv file
 	if handler.Header.Get("Content-Type") == "text/csv" {
 
+		// Setup path to convert csv file to xlsx
 		xlsxPath := "uploads/" + ext[0] + ".xlsx"
 
+		// Convert file from csv to xlsx
 		err := generateXLSXFromCSV(path, xlsxPath, ",")
 		if err != nil {
 			fmt.Println(err)
@@ -937,8 +1025,10 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			return
 		}
 
+		// Initialize variable for no header line in spreadsheet
 		noHeader := false
 
+		// Open the xlsx file
 		fxlsx, err := excelize.OpenFile(xlsxPath)
 		if err != nil {
 			fmt.Println(err)
@@ -958,7 +1048,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			return
 		}
 
-		// Get all the rows in the Sheet1.
+		// Get all the rows in the Sheet1
 		cols, err := fxlsx.GetCols("Sheet1")
 		if err != nil {
 			fmt.Println(err)
@@ -978,15 +1068,15 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			return
 		}
 
+		// Iterate over all columns
 		for i, col := range cols {
 
+			// If at column 0
 			if i == 0 {
 				for j, field := range col {
 					if j == 0 {
+						// Check if header line exists
 						if field != "none" {
-							fmt.Println("\n", field)
-							fmt.Printf("%T\n", field)
-							fmt.Println(field[1])
 							if !unicode.IsLetter(rune(field[1])) {
 								fmt.Println("Inside: Is Not Letter")
 								noHeader = true
@@ -1011,7 +1101,9 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 						}
 					}
 				}
+				// If not at column 0
 			} else {
+				// Do this if file is determined to not have a header liner
 				if noHeader {
 					fmt.Println("Inside No Header")
 					for _, field := range col {
@@ -1021,6 +1113,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 					myLine.BorderColor = "none"
 					myLine.BackgroundColor = "none"
 					myData.Data = append(myData.Data, myLine)
+					// Do this if file has a header line
 				} else {
 					fmt.Println("Inside Has Header")
 					for j, field := range col {
@@ -1035,23 +1128,29 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 					myData.Data = append(myData.Data, myLine)
 				}
 			}
+			// Clear Data variable for next iteration
 			myLine.Data = []string{}
 		}
-
+		// Setup response struct
 		myFile.Data = myData
 		myFile.Success = true
 
+		// Close the file
 		fxlsx.Close()
 
+		// Remove the file from the system
 		err = os.Remove(xlsxPath)
 		if err != nil {
 			fmt.Println(err)
 		}
 
+		// Do this if file is not csv
 	} else {
 
+		// Initialize no header variable
 		noHeader := false
 
+		// Open the xlsx file
 		fxlsx, err := excelize.OpenFile(path)
 		if err != nil {
 			fmt.Println(err)
@@ -1091,11 +1190,14 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			return
 		}
 
+		// Iterate over all columns
 		for i, col := range cols {
 
+			// If on column 0
 			if i == 0 {
 				for j, field := range col {
 					if j == 0 {
+						// Check if file has a header line
 						if field != "" {
 							fmt.Printf("%T\n", field[0])
 							if !unicode.IsLetter(rune(field[0])) {
@@ -1122,7 +1224,9 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 						}
 					}
 				}
+				// If not on column 0
 			} else {
+				// If file does not have a header line
 				if noHeader {
 					fmt.Println("Inside No Header")
 					for _, field := range col {
@@ -1132,6 +1236,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 					myLine.BorderColor = "none"
 					myLine.BackgroundColor = "none"
 					myData.Data = append(myData.Data, myLine)
+					// If file has a header line
 				} else {
 					fmt.Println("Inside Has Header")
 					for j, field := range col {
@@ -1146,12 +1251,15 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 					myData.Data = append(myData.Data, myLine)
 				}
 			}
+			// Clear data variable for next iteration
 			myLine.Data = []string{}
 		}
 
+		// Setup response data
 		myFile.Data = myData
 		myFile.Success = true
 
+		// Close file
 		fxlsx.Close()
 
 	}
@@ -1188,16 +1296,18 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	now := time.Now()
 	timeFormat := fmt.Sprint(now.Month(), now.Day(), now.Year(), now.Hour(), ":", now.Minute())
 
-	// Insert the user into the database with the hashed password
+	// Insert the graph into the database
 	doc := bson.D{{"Timestamp", timeFormat}, {"GraphData", myData}}
 	_, err = coll.InsertOne(context.TODO(), doc)
 	if err != nil {
 		fmt.Println(err)
 	}
 
+	// Close files
 	f.Close()
 	file.Close()
 
+	// Remove file from system
 	err = os.Remove(path)
 	if err != nil {
 		fmt.Println(err)
@@ -1213,7 +1323,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, "%s\n", responseJson)
 }
 
-// Route: Get Users, for getting a list of users
+// Route: Get Graphs, for getting a list of graphs
 func RouteGetGraphs(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Set content-type to JSON
 	w.Header().Set("Content-Type", "application/json")
@@ -1262,19 +1372,31 @@ func RouteGetGraphs(w http.ResponseWriter, r *http.Request, p httprouter.Params)
 	cursor, err := coll.Find(context.TODO(), bson.D{}, opts)
 	// If no documents were found, send a response and return
 	if err == mongo.ErrNoDocuments {
-		fmt.Printf("No documents were found")
+		response := ResponseError{
+			Success: false,
+			Error:   "No graphs found",
+		}
+
+		// Marshal into JSON
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Send error response to the user in JSON, then return
+		fmt.Fprintf(w, "%s\n", responseJson)
 		return
 	}
 
 	// Setup a variable for the database results
 	var data []TempData
 
-	// Send all database results to results variable
+	// Send all database results to data variable
 	if err = cursor.All(context.TODO(), &data); err != nil {
 		fmt.Println(err)
 	}
 
-	// Setup a variable with the ResponseStandard struct
+	// Setup a variable with the Response struct
 	response := Response{
 		Success: true,
 		Data:    data,
@@ -1290,7 +1412,7 @@ func RouteGetGraphs(w http.ResponseWriter, r *http.Request, p httprouter.Params)
 	fmt.Fprintf(w, "%s\n", responseJson)
 }
 
-// Route: New User, for creating a new user, adds user to database, password is hashed. Takes a username and password in the request body
+// Route: Get Graph, for getting data on a saved graph
 func RouteGetGraph(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Set content-type to JSON
 	w.Header().Set("Content-Type", "application/json")
@@ -1304,7 +1426,7 @@ func RouteGetGraph(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 		Data    bson.M `json:"Data"`
 	}
 
-	// Declare a new NewUser struct.
+	// Declare a new NewGraph struct.
 	var p1 NewGraph
 
 	// Try to decode the request body into the struct. If there is an error,
@@ -1318,6 +1440,22 @@ func RouteGetGraph(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	// Setup username and password variables from request body
 	graphID := p1.ID
 	graphObjID, err := primitive.ObjectIDFromHex(graphID)
+	if err != nil {
+		response := ResponseError{
+			Success: false,
+			Error:   "An error occured",
+		}
+
+		// Marshal into JSON
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Send error response to the user in JSON, then return
+		fmt.Fprintf(w, "%s\n", responseJson)
+		return
+	}
 
 	// Load the env file
 	err = godotenv.Load("variables.env")
@@ -1370,7 +1508,7 @@ func RouteGetGraph(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 		return
 	}
 
-	// Setup a variable with the ResponseStandard struct
+	// Setup a variable with the Response struct
 	response := Response{
 		Success: true,
 		Data:    result,
@@ -1387,7 +1525,7 @@ func RouteGetGraph(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	return
 }
 
-// Route: New User, for creating a new user, adds user to database, password is hashed. Takes a username and password in the request body
+// Route: Delete Graph from database
 func RouteDeleteGraph(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Set content-type to JSON
 	w.Header().Set("Content-Type", "application/json")
@@ -1396,7 +1534,7 @@ func RouteDeleteGraph(w http.ResponseWriter, r *http.Request, p httprouter.Param
 		ID string `json:"_id"`
 	}
 
-	// Declare a new NewUser struct.
+	// Declare a new DeleteGraph struct.
 	var p1 DeleteGraph
 
 	// Try to decode the request body into the struct. If there is an error,
@@ -1410,6 +1548,22 @@ func RouteDeleteGraph(w http.ResponseWriter, r *http.Request, p httprouter.Param
 	// Setup username and password variables from request body
 	id := p1.ID
 	graphID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		response := ResponseError{
+			Success: false,
+			Error:   "An error occured",
+		}
+
+		// Marshal into JSON
+		responseJson, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Send error response to the user in JSON, then return
+		fmt.Fprintf(w, "%s\n", responseJson)
+		return
+	}
 
 	// Load the env file
 	err = godotenv.Load("variables.env")
@@ -1439,6 +1593,7 @@ func RouteDeleteGraph(w http.ResponseWriter, r *http.Request, p httprouter.Param
 	// Set the database name and collection name
 	coll := client.Database("go_project1").Collection("graphs")
 
+	// Delete the graph from the database
 	filter := bson.D{{"_id", graphID}}
 	_, err = coll.DeleteOne(context.TODO(), filter)
 	if err != nil {

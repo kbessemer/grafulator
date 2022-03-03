@@ -1,3 +1,9 @@
+// GRAFULATOR
+// Last Modified: March 3, 2022
+// Authored and Developed by: Kyle Bessemer
+// LinkedIn: https://www.linkedin.com/in/kyle-bessemer-606a7a1b2/
+// GitHub: https://github.com/kbessemer
+
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
@@ -13,8 +19,10 @@ import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import InfoIcon from '@mui/icons-material/Info';
 import { Link } from "react-router-dom";
 
+// Setup drawer width
 const drawerWidth = 240;
 
+// Return a permanent navigation drawer on left side of screen
 export default function PermanentDrawerRight() {
   return (
     <Box sx={{ display: 'flex' }}>
@@ -34,6 +42,7 @@ export default function PermanentDrawerRight() {
         anchor="left"
       >
         <List>
+            {/* Dashboard link */}
             <Link style={{ textDecoration: "none", color: "white" }} to="/dashboard">
                 <ListItem button key="dashboard">
                     <ListItemIcon>
@@ -43,6 +52,7 @@ export default function PermanentDrawerRight() {
                 </ListItem>
             </Link>
 
+            {/* Users link */}
             <Link style={{ textDecoration: "none", color: "white" }} to="/users">
                 <ListItem button key="users">
                     <ListItemIcon>
@@ -52,6 +62,7 @@ export default function PermanentDrawerRight() {
                 </ListItem>
             </Link>
 
+            {/* My Password link */}
             <Link style={{ textDecoration: "none", color: "white" }} to="/mypassword">
                 <ListItem button key="mypassword">
                     <ListItemIcon>
@@ -61,6 +72,7 @@ export default function PermanentDrawerRight() {
                 </ListItem>
             </Link>
 
+            {/* About & Help link */}
             <Link style={{ textDecoration: "none", color: "white" }} to="/about">
                 <ListItem button key="about">
                     <ListItemIcon>
@@ -70,6 +82,7 @@ export default function PermanentDrawerRight() {
                 </ListItem>
             </Link>
 
+            {/* Sign Out link */}
             <Link style={{ textDecoration: "none", color: "white" }} to="/signout">
                 <ListItem button key="signout">
                     <ListItemIcon>
