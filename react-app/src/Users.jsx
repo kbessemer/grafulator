@@ -8,8 +8,10 @@ import React from 'react';
 import PermanentDrawerRight from "./components/Drawer";
 import GetUsers from './components/GetUsers';
 
+// Users screen
 function Users() {
 
+  // Return statement, consists of a logo, navigation drawer, and getusers component
   return (
     <div>
         <div className="logo">

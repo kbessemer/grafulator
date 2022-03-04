@@ -12,11 +12,14 @@ import AlertSnackbar from './alerts/AlertSnackbar';
 import Tooltip from '@mui/material/Tooltip';
 import SERVERIP from '../constants.js';
 
+// Users page component
 function GetUsers() {
 
+    // Setup react hooks
     const [userList, setUserList] = React.useState([]);
     const [myState, setMyState] = React.useState({});
 
+    // Style for add user modal
     const style = {
       position: 'absolute',
       top: '50%',
@@ -28,10 +31,17 @@ function GetUsers() {
       boxShadow: 24,
     };
 
+    // Do this on screen load
+    React.useEffect(() => {
+      GetUserList();
+    }, [])
+
+    // Function for deleting a user
     function DeleteUserPost(username) {
       setMyState({Loading: true})
       var url = SERVERIP + 'deleteuser';
       var token = localStorage.getItem('session-id')
+      // Make backend api call
       fetch(url, {
         method: 'post',
         body: JSON.stringify({
@@ -44,15 +54,18 @@ function GetUsers() {
         },
       }).then(response => response.json())
       .then(json => {
+        // On success message
         if (json.Success) {
           setMyState({UserDeleted: true, Loading: false});
           GetUserList();
           setTimeout(() => setMyState({UserDeleted: false}), 3000);
         } else {
+            // If response is bad token
             if (json.Error === "Bad token") {
               setMyState({SessionError: true, Loading: false})
               setTimeout(() => setMyState({SessionError: false}), 3000);
               return
+            // If user tries to delete themselves
             } else if (json.Error === "Can not delete self") {
               setMyState({DeleteSelfError: true, Loading: false})
               setTimeout(() => setMyState({DeleteSelfError: false}), 3000);
@@ -61,7 +74,9 @@ function GetUsers() {
       });
     }
     
+    // Function for adding a user
     function AddUser() {
+      // React hooks
       const [open, setOpen] = React.useState(false);
       const handleOpen = () => setOpen(true);
       const handleClose = () => setOpen(false);
@@ -69,19 +84,23 @@ function GetUsers() {
       const [formPass, setFormPass] = React.useState("");
       const [formPass2, setFormPass2] = React.useState("");
     
+      // Body of backend api call
       var addBody = {
         username: formUser,
         password: formPass
       };
     
+      // Backend api call
       function AddUserPost(event) {
         event.preventDefault();
         setMyState({Loading: true})
+        // Verify all fields have been filled out
         if (formUser === "" || formPass === "" || formPass2 === "") {
           setMyState({Loading: false, FieldsError: true})
           setTimeout(() => setMyState({FieldsError: false}), 3000);
           return
         }
+        // Verify passwords match
         if (formPass != formPass2) {
             handleClose();
             setMyState({PasswordMismatch: true, Loading: false});
@@ -90,26 +109,29 @@ function GetUsers() {
             return
         }
         var url = SERVERIP + 'newuser';
+        // Fetch to backend api
         fetch(url, {
           method: 'post',
           body: JSON.stringify(addBody),
           headers: {
             'Authorization': localStorage.getItem('session-id')
-            // 'Content-Type': 'application/x-www-form-urlencoded',
           },
         }).then(response => response.json())
         .then(json => {
+          // On success response
           if (json.Success) {
             handleClose();
             setMyState({UserAdded: true, Loading: false});
             GetUserList()
             setTimeout(() => setMyState({UserAdded: false}), 3000);
           } else {
+              // On responose - user exists
               if (json.Error === "User exists") {
                 handleClose();
                 setMyState({UserExists: true, Loading: false})
                 setTimeout(() => setMyState({UserExists: false}), 3000);
                 return
+              // On response - bad token
               } else if (json.Error === "Bad token") {
                 handleClose();
                 setMyState({SessionError: true, Loading: false})
@@ -120,18 +142,18 @@ function GetUsers() {
         });
       }
     
+      // Handlers for add user form input
       function handleUser(event) {
         setFormUser(event.target.value);
       }
-    
       function handlePass(event) {
         setFormPass(event.target.value);
       }
-    
       function handlePass2(event) {
         setFormPass2(event.target.value);
       }
 
+      // Return statement for add user, consists of alerts and a modal popup
       return (
         <div>
           {myState.FieldsError ? <AlertSnackbar open={true} message="All fields required!" severity="error"/> : null}
@@ -174,24 +196,23 @@ function GetUsers() {
       );
     }
 
-    React.useEffect(() => {
-        GetUserList();
-      }, [])
-
+    // Function for fetching the user list from the backend
     function GetUserList() {
       var url = SERVERIP + 'getusers';
+      // Backend api call
       fetch(url, {
           headers: {
             'Authorization': localStorage.getItem('session-id')
-            // 'Content-Type': 'application/x-www-form-urlencoded',
           },
         })
           .then(res => res.json())
           .then(
             (result) => {
+              // On success response
               if (result.Success) {
                 setUserList(result.Data);
               } else {
+                // On response - bad token
                 if (result.Error == "Bad token") {
                   setMyState({SessionError: true})
                   setTimeout(() => setMyState({SessionError: false}), 3000);
@@ -199,9 +220,6 @@ function GetUsers() {
                 }
               }
             },
-            // Note: it's important to handle errors here
-            // instead of a catch() block so that we don't swallow
-            // exceptions from actual bugs in components.
             (error) => {
               console.log(error);
             }
@@ -209,6 +227,7 @@ function GetUsers() {
       return
     }
 
+    // Function for filtering the user list table (search)
     function FilterTable() {
       // Declare variables
       var input, filter, table, tr, td, i, txtValue;
@@ -231,6 +250,7 @@ function GetUsers() {
       }
     }
 
+    // Return statement for add user screen, consists of a loading indicator, search box, AddUser function, and a user table
     return (
         <div>
             {myState.Loading ? <Box sx={{ width: '100%' }}>

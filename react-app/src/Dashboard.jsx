@@ -8,8 +8,9 @@ import React from 'react';
 import UploadFile from "./components/UploadFile";
 import PermanentDrawerRight from "./components/Drawer";
 
-
+// Dashboard component
 function Dashboard() {
+  // Return statement, consists of the logo, navigation drawer, and uploadfile component
   return (
     <div>
       <div className="logo">

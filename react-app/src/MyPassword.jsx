@@ -10,27 +10,33 @@ import AlertSnackbar from './components/alerts/AlertSnackbar';
 import PermanentDrawerRight from "./components/Drawer";
 import SERVERIP from './constants';
 
-function LoginForm() {
+// MyPassword component
+function MyPassword() {
 
+    // React hooks
     const [formPass, setFormPass] = React.useState("");
     const [formNewPass, setFormNewPass] = React.useState("");
     const [formNewPass2, setFormNewPass2] = React.useState("");
     const [myState, setMyState] = React.useState({});
   
+    // Request body
     var passBody = {
       password: formPass,
       newPassword: formNewPass,
       session: localStorage.getItem('session-id')
     };
   
+    // Function for changing password, sends request to backend
     function PasswordPost(event) {
       event.preventDefault();
       setMyState({Loading: true})
+      // Verify all fields have been filled out
       if (formPass === "" || formNewPass === "" || formNewPass2 === "") {
         setMyState({Loading: false, FieldsError: true})
         setTimeout(() => setMyState({FieldsError: false}), 3000);
         return
       }
+      // Verify passwords match
       if (formNewPass != formNewPass2) {
         setMyState({Loading: false, PasswordMismatch: true})
         event.preventDefault();
@@ -38,22 +44,25 @@ function LoginForm() {
         return
     }
       var url = SERVERIP + 'mypassword';
+      // Fetch request to backend
       fetch(url, {
         method: 'post',
         body: JSON.stringify(passBody),
         headers: {
             'Authorization': localStorage.getItem('session-id')
-            // 'Content-Type': 'application/x-www-form-urlencoded',
           },
       }).then(response => response.json())
       .then(json => {
+        // On success response
         if (json.Success) {
           setMyState({Loading: false, Success: true})
           setTimeout(() => setMyState({Success: false}), 3000);
         } else {
+          // On error response - bad password
           if (json.Error === "Bad password") {
             setMyState({Loading: false, PasswordError: true})
             setTimeout(() => setMyState({PasswordError: false}), 3000);
+          // On error response - bad token
           } else if (json.Error === "Bad token") {
               setMyState({Loading: false, SessionError: true})
               setTimeout(() => setMyState({SessionError: false}), 3000);
@@ -62,18 +71,18 @@ function LoginForm() {
       });
     }
   
+    // Handlers for change password form input
     function handlePass(event) {
       setFormPass(event.target.value);
     }
-
     function handleNewPass(event) {
-        setFormNewPass(event.target.value);
+      setFormNewPass(event.target.value);
     }
-
     function handleNewPass2(event) {
-        setFormNewPass2(event.target.value);
+      setFormNewPass2(event.target.value);
     }
   
+    // Return statement for mypassword component, consists of alerts and a change password form
     return (
       <div>
         <div className="logo">
@@ -112,4 +121,4 @@ function LoginForm() {
     )
   }
 
-  export default LoginForm;
+  export default MyPassword;

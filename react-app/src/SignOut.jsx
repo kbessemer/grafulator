@@ -7,19 +7,24 @@
 import React from 'react';
 import { useNavigate } from "react-router-dom";
 
-function GetUsers() {
-    
+// Sign Out component
+function SignOut() {
+    // Setup variable for navigation
     let navigate = useNavigate();
 
+    // Do this on screen load
     React.useEffect(() => {
+        // Remove session id from browser's local storage
         localStorage.removeItem('session-id');
+        // Navigate to index route
         navigate("../", { replace: true });
       }, [])
 
+    // Return statementm returns a blank div
     return (
         <div>
         </div>
     )
 }
 
-export default GetUsers
+export default SignOut

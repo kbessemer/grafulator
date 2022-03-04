@@ -17,11 +17,24 @@ import { GlobalStyles } from "./globalStyles";
 import { lightTheme, darkTheme } from "./Theme"
 import Tooltip from '@mui/material/Tooltip';
 
+// Main App function
 function App() {
 
+  // React hooks
   const [theme, setTheme] = React.useState('light');
   const [myState, setMyState] = React.useState({});
 
+  // Do this on screen load
+  React.useEffect(() => {
+    var lsTheme = localStorage.getItem('theme');
+    if (lsTheme === 'dark') {
+      setTheme('dark');
+    } else if (lsTheme === 'light') {
+      setTheme('light');
+    }
+  }, [])
+
+  // Function for changing the theme to either dark or light
   function themeToggler() {
     if (theme === 'light') {
       setTheme('dark');
@@ -32,15 +45,7 @@ function App() {
     }
   }
 
-  React.useEffect(() => {
-    var lsTheme = localStorage.getItem('theme');
-    if (lsTheme === 'dark') {
-      setTheme('dark');
-    } else if (lsTheme === 'light') {
-      setTheme('light');
-    }
-  }, [])
-
+  // Return statement for App function, sets up app theme, and the app router which defines URL's for additional pages
   return (
     <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
       <GlobalStyles/>

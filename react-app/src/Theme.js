@@ -4,8 +4,7 @@
 // LinkedIn: https://www.linkedin.com/in/kyle-bessemer-606a7a1b2/
 // GitHub: https://github.com/kbessemer
 
-import { ContactsTwoTone, Contrast } from "@mui/icons-material"
-
+// Light Theme settings
 export const lightTheme = {
     html: {
         background: '#fff',
@@ -89,6 +88,8 @@ export const lightTheme = {
         filter: 'contrast(0%)',
     }
 }
+
+// Dark Theme settings
 export const darkTheme = {
     html: {
         background: '#282c34',

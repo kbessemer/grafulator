@@ -8,8 +8,10 @@ import React from 'react';
 import NOTES from './release_notes.js';
 import PermanentDrawerRight from "./components/Drawer";
 
+// About component
 function About() {
 
+    // Return statement for about function, consists of release notes, bug reporting, and file format help
     return (
         <div>
             <div className="logo">

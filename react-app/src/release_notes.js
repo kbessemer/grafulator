@@ -4,6 +4,7 @@
 // LinkedIn: https://www.linkedin.com/in/kyle-bessemer-606a7a1b2/
 // GitHub: https://github.com/kbessemer
 
+// Array of objects for release notes
 const NOTES = [
     {
         version: '1.01',

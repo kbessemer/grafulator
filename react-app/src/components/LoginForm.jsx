@@ -11,49 +11,61 @@ import AlertSnackbar from './alerts/AlertSnackbar';
 import { Buffer } from 'buffer';
 import SERVERIP from '../constants.js';
 
+// Login form component
 function LoginForm() {
 
-    const utf8 = require('utf8');
+    // Setup variables and react hooks
     const [formUser, setFormUser] = React.useState("");
     const [formPass, setFormPass] = React.useState("");
     const [myState, setMyState] = React.useState({});
     let navigate = useNavigate();
   
+    // Do this on screen load
+    React.useEffect(() => {
+      AutoLogin();
+    }, [])
+
+    // Body of login request
     var loginBody = {
       username: formUser,
       password: formPass
     };
   
+    // Function for backend login api call
     function LoginPost(event) {
       event.preventDefault();
       setMyState({Loading: true});
+      // Verify all fields have been filled out
       if (formUser === "" || formPass === "") {
         setMyState({Loading: false, FieldsError: true})
         setTimeout(() => setMyState({FieldsError: false}), 3000);
         return
       }
+      // Setup basic auth
       let user = 'kyle';
       let pass = 'bessemer!';
       let auth = 'Basic ' + new Buffer(user + ':' + pass).toString('base64')
-      console.log(auth);
       var url = SERVERIP + 'login';
+      // Fetch request to backend
       fetch(url, {
         method: 'post',
         body: JSON.stringify(loginBody),
         headers: {
           'Authorization': auth
-          // 'Content-Type': 'application/x-www-form-urlencoded',
         },
       }).then(response => response.json())
       .then(json => {
+        // On success response
         if (json.Success) {
           localStorage.setItem('session-id', json.Token);
-          console.log("Logged In!");
+          // Forward to dashboard screen
           navigate("../dashboard", { replace: true });
         } else {
+          // On error response - bad password
           if (json.Error === "Bad password") {
             setMyState({Loading: false, PasswordError: true});
             setTimeout(() => setMyState({PasswordError: false}), 3000);
+          // On error response - no user found
           } else if (json.Error === "No user found") {
             setMyState({Loading: false, UserError: true});
             setTimeout(() => setMyState({UserError: false}), 3000);
@@ -62,43 +74,41 @@ function LoginForm() {
       });
     }
   
+    // Handlers for login form input
     function handleUser(event) {
       setFormUser(event.target.value);
     }
-  
     function handlePass(event) {
       setFormPass(event.target.value);
     }
 
-    React.useEffect(() => {
-      AutoLogin();
-    }, [])
-
+    // This function checks the user's browser for a saved session id then sends a request to the backend
+    // to see if the token is still valid, if valid the user is auto logged in
     function AutoLogin() {
       var token = localStorage.getItem('session-id');
       if (token != null) {
         setMyState({Loading: true, tryLogin: true})
         var url = SERVERIP + 'autologin';
+        // Fetch to backend api
         fetch(url, {
             headers: {
               'Authorization': token
-              // 'Content-Type': 'application/x-www-form-urlencoded',
             },
           })
             .then(res => res.json())
             .then(
               (result) => {
+                // On success response
                 if (result.Success) {
                   setMyState({Loading: false, tryLogin: false})
+                  // Forward to dashboard
                   navigate("../dashboard", { replace: true });
                 } else {
+                  // If not successful, notify the user they must login again
                   setMyState({Loading: false, tryLogin: false, autoLoginFail: true})
                   setTimeout(() => setMyState({autoLoginFail: false}), 3000);
                 }
               },
-              // Note: it's important to handle errors here
-              // instead of a catch() block so that we don't swallow
-              // exceptions from actual bugs in components.
               (error) => {
                 console.log(error);
               }
@@ -107,6 +117,7 @@ function LoginForm() {
       }
     }
   
+    // Return statement for login form, consists of alerts, logo, a loading indicator, and a login form
     return (
       <div>
         <img src="images/logo.png" alt="logo" />
