@@ -22,6 +22,7 @@ function UploadFile() {
   const [rangeStart, setRangeStart] = React.useState();
   const [rangeStop, setRangeStop] = React.useState();
   const [statData, setStatData] = React.useState({});
+  const [statLabel, setStatLabel] = React.useState();
 
   // Do this on screen load
   React.useEffect(() => {
@@ -91,6 +92,24 @@ function UploadFile() {
   // Function for creating the graph
   function DrawGraph(data, labels) {
     var graphDataSets = [];
+    var dateLabels = [];
+    var epoch = 1646419606
+    epoch *= 1000
+    var date = new Date(epoch)
+    console.log(date)
+    if (labels[0].search("-") === -1) {
+      for (var x in labels) {
+        dateLabels.push(labels[x]);
+      }
+    } else {
+      for (var x in labels) {
+        var timestamp = new Date(labels[x]);
+        dateLabels.push(timestamp.getTime());
+      }
+    }
+    var hour = dateLabels[0].toLocaleString("en-US", {hour: "numeric"})
+    var minute = dateLabels[0].toLocaleString("en-US", {minute: "numeric"})
+    var seconds = dateLabels[0].toLocaleString("en-US", {second: "numeric"})
     // Set graph size
     setPlotSize({width: 1100, height: 700});
     // Iterate over the data in api response
@@ -102,7 +121,7 @@ function UploadFile() {
       graphDataSets.push({type: 'line', name: data[x].label, mode: 'lines+markers', marker: {color: color}, x: labels, y: data[x].data});
     }
     // Adjust react hooks
-    setGraphDataFinal({data: graphDataSets, data2: graphDataSets, labels: labels, stats: false});
+    setGraphDataFinal({data: graphDataSets, data2: graphDataSets, labels: labels, dateLabels: dateLabels, stats: false});
     setMyState({Loading: false, isUploaded: true})
   }
 
@@ -130,11 +149,12 @@ function UploadFile() {
       graphDataSets.push({type: 'line', name: graphDataFinal.data[x].name, mode: 'lines+markers', marker: {color: color}, x: labels, y: rangeData});
     }
     // Adjust react hook
-    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataSets, labels: graphDataFinal.labels, yLabels: yLabels, range: true, stats: false});
+    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataSets, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels, yLabels: yLabels, range: true, stats: false});
   }
 
   // Function for the statistics summary for the selected range
-  function CalcStats(index) {
+  function CalcStats(index, label) {
+    setStatLabel(label);
     var data = [];
     var statLength = graphDataFinal.data2[index].y.length - 1
     // Iterate over graph data, create a data array with values
@@ -143,7 +163,7 @@ function UploadFile() {
       data.push({ID: x, value: parseFloat(graphDataFinal.data2[index].y[x])})
     }
     // Adjust react hook
-    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data2, labels: graphDataFinal.labels, yLabels: graphDataFinal.yLabels, range: true, stats: true})
+    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data2, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels, yLabels: graphDataFinal.yLabels, range: true, stats: true})
 
     // Identify columns for statistics.js
     var columns = {
@@ -162,6 +182,81 @@ function UploadFile() {
 
     // Adjust react hook with statistics data
     setStatData({minimum: stats.minimum("value"), maximum: stats.maximum("value"), range: stats.range("value"), mean: stats.mean("value"), median: stats.median("value"), mode: stats.mode("value"), variance: stats.variance("value"), stddev: stats.standardDeviation("value"), co: stats.coefficientOfVariation("value")})
+  }
+
+  // Function for choosing a resolution
+  function ResolutionRange(start, stop, res, value, label) {
+    var graphDataSets = [];
+    var data = [];
+    var values = [];
+    var resTimestamp = [];
+    var counter = 1;
+    var tempTime = '';
+
+    var startSeconds = graphDataFinal.dateLabels[start];
+
+    startSeconds = parseInt(startSeconds);
+    var maxSeconds = startSeconds + res;
+    console.log(graphDataFinal.data2[value].x[0]);
+    graphDataSets.push(graphDataFinal.data2[value]);
+
+    tempTime = parseInt(graphDataFinal.data2[value].x);
+
+    function getValues() {
+      for (var z in graphDataFinal.data2[value].x) {
+        var tempSeconds = parseInt(graphDataFinal.data2[value].x[z]);
+        if (startSeconds <= tempSeconds && tempSeconds <= maxSeconds) {
+          console.log("Found seconds within resolution")
+          data.push({ID: counter, value: parseFloat(graphDataFinal.data2[value].y[z])});
+          counter += 1;
+        }
+      }
+      // Identify columns for statistics.js
+      var columns = {
+        ID: 'ordinal',
+        value: 'interval',
+      }
+
+        // Identify settings for statistics.js
+      var settings = {
+        excludeColumns: ["ID"],
+        suppressWarnings: true,
+      };
+
+      // Identify a new statistics
+      var stats = new Statistics(data, columns, settings);
+
+      values.push(stats.median("value"));
+
+      resTimestamp.push(tempTime);
+
+      data = [];
+
+      startSeconds += res;
+      maxSeconds += res;
+      tempTime += res;
+
+      if (startSeconds <= tempSeconds) {
+        getValues();
+      }
+
+    }
+
+    if (graphDataFinal.data2[value].x[0].search("-") === -1) {
+      console.log("Found epoch time")
+      getValues();
+      const randomColor = Math.floor(Math.random()*16777215).toString(16);
+      var color = "#" + randomColor;
+      graphDataSets.push({type: 'line', name: 'Resolution Data', mode: 'lines+markers', marker: {color: color}, x: resTimestamp, y: values});
+    } else {
+      for (var z in graphDataFinal.data2[value].x) {
+        var timestamp = new Date(graphDataFinal.data2[value].x[z]);
+        
+      }
+    }
+    console.log(graphDataSets);
+    // Adjust react hook
+    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data2, data3: graphDataSets, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels, yLabels: graphDataFinal.yLabels, range: true, stats: false, res: true});
   }
 
   // Function for fetching the list of graphs from the database
@@ -378,6 +473,11 @@ function UploadFile() {
       }
     }
   }
+
+  // Function for the resolution dropdown
+  function resFunction() {
+    document.getElementById("myDropdown4").classList.toggle("show");
+  }
   
   // Return statement for the upload file component, consists of alerts, graph when data is present, upload file drop zone,
   // graph options such as statistics and range, and graph history from the database
@@ -412,7 +512,15 @@ function UploadFile() {
             <button onClick={statFunction} class="dropbtn">VIEW STATISTICS</button>
             <div id="myDropdown3" class="dropdown-content">
               <input type="text" placeholder="Search.." id="statInput" onKeyUp={statFilter}/>
-              {graphDataFinal.yLabels.map((label, index) => { return ( <a key={index} onClick={() => CalcStats(index)}>{label}</a> )})}
+              {graphDataFinal.yLabels.map((label, index) => { return ( <a key={index} onClick={() => CalcStats(index, label)}>{label}</a> )})}
+            </div>
+          </div>
+          <div class="dropdown">
+            <button onClick={resFunction} class="dropbtn">VIEW RESOLUTION</button>
+            <div id="myDropdown4" class="dropdown-content">
+              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 1000, 0, statLabel)}>1 Second</a>
+              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 2000, 0, statLabel)}>2 Seconds</a>
+              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 3000, 0, statLabel)}>3 Seconds</a>
             </div>
           </div>
         </div> : null}
@@ -439,11 +547,10 @@ function UploadFile() {
       </div> : null}
 
       {myState.isUploaded ? <div id="myPlot"><Plot
-          data={graphDataFinal.data2}
-          layout={ {width: plotSize.width, height: plotSize.height, title: '', xaxis: {'type': 'category'}} }
-        /></div> : null}
+          data={graphDataFinal.res ? graphDataFinal.data3 : graphDataFinal.data2}
+          layout={ {width: plotSize.width, height: plotSize.height, title: '', xaxis: {'type': 'date'}} }
+        /><br></br><br></br></div> : null}
 
-        <br></br><br></br>
         <div id="dropZone" onDrop={dropHandler} onDragOver={dragOverHandler}>
           <p className="dropZone">Drag one or more files to upload and generate a graph</p>
         </div>
