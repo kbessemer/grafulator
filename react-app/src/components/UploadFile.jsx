@@ -294,6 +294,29 @@ function UploadFile() {
     setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data2, data3: graphDataSets, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels, yLabels: graphDataFinal.yLabels, range: true, stats: true, res: true});
   }
 
+  function ChangeColors() {
+    var graphDataSets = [];
+    if (graphDataFinal.res) {
+      for (var x in graphDataFinal.data3) {
+        // Choose a random color for each line
+        const randomColor = Math.floor(Math.random()*16777215).toString(16);
+        var color = "#" + randomColor;
+        // Create a data entry for each line
+        graphDataSets.push({type: 'line', name: graphDataFinal.data3[x].name, mode: 'lines+markers', marker: {color: color}, x: graphDataFinal.data3[x].x, y: graphDataFinal.data3[x].y});
+      }
+      setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data2, data3: graphDataSets, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels, yLabels: graphDataFinal.yLabels, range: graphDataFinal.range, stats: graphDataFinal.stats, res: graphDataFinal.res});
+    } else {
+      for (var x in graphDataFinal.data2) {
+        // Choose a random color for each line
+        const randomColor = Math.floor(Math.random()*16777215).toString(16);
+        var color = "#" + randomColor;
+        // Create a data entry for each line
+        graphDataSets.push({type: 'line', name: graphDataFinal.data2[x].name, mode: 'lines+markers', marker: {color: color}, x: graphDataFinal.data2[x].x, y: graphDataFinal.data2[x].y});
+      }
+      setGraphDataFinal({data: graphDataFinal.data, data2: graphDataSets, data3: graphDataFinal.data3, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels, yLabels: graphDataFinal.yLabels, range: graphDataFinal.range, stats: graphDataFinal.stats, res: graphDataFinal.res});
+    }
+  }
+
   // Function for fetching the list of graphs from the database
   function GetGraphList() {
     var url = SERVERIP + 'getgraphs';
@@ -548,6 +571,7 @@ function UploadFile() {
           </div>
           <input className="add-user" type="submit" value="VIEW RANGES" onClick={() => GraphRange(rangeStart, rangeStop)}/>
           <input className="add-user" type="submit" value="RESET RANGES" onClick={() => setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels})}/>
+          <input className="add-user" type="submit" value="CHANGE COLORS" onClick={() => ChangeColors()}/>
         </div> : null}
       <br/><br/>
       {graphDataFinal.range ? <div className="left-margin"><div class="dropdown">
