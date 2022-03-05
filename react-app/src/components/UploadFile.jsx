@@ -21,8 +21,8 @@ function UploadFile() {
   const [graphList, setGraphList] = React.useState([]);
   const [myState, setMyState] = React.useState({});
   const [plotSize, setPlotSize] = React.useState({});
-  const [rangeStart, setRangeStart] = React.useState();
-  const [rangeStop, setRangeStop] = React.useState();
+  const [rangeStart, setRangeStart] = React.useState(null);
+  const [rangeStop, setRangeStop] = React.useState(null);
   const [statData, setStatData] = React.useState({});
   const [statLabel, setStatLabel] = React.useState(null);
   const [statsOpen, setStatsOpen] = React.useState(false);
@@ -144,6 +144,16 @@ function UploadFile() {
 
   // Function for choosing a range in the graph
   function GraphRange(start, stop) {
+    if (start === null || stop === null) {
+      setMyState({BlankRangeError: true, Loading: false, isUploaded: true});
+      setTimeout(() => setMyState({BlankRangeError: false, Loading: false, isUploaded: true}), 3000);
+      return
+    }
+    if (start > stop) {
+      setMyState({RangeError: true, Loading: false, isUploaded: true});
+      setTimeout(() => setMyState({RangeError: false, Loading: false, isUploaded: true}), 3000);
+      return
+    }
     var yLabels = [];
     var graphDataSets = [];
     var labels = [];
@@ -198,7 +208,7 @@ function UploadFile() {
     var stats = new Statistics(data, columns, settings);
 
     // Adjust react hook with statistics data
-    setStatData({minimum: stats.minimum("value"), maximum: stats.maximum("value"), range: stats.range("value"), mean: stats.mean("value"), median: stats.median("value"), mode: stats.mode("value"), variance: stats.variance("value"), stddev: stats.standardDeviation("value"), co: stats.coefficientOfVariation("value")})
+    setStatData({minimum: stats.minimum("value"), maximum: stats.maximum("value"), range: stats.range("value"), mean: stats.mean("value"), median: stats.median("value"), mode: stats.mode("value"), variance: stats.variance("value"), stddev: stats.standardDeviation("value"), co: stats.coefficientOfVariation("value"), quartiles: stats.quartiles("value")})
     setStatsOpen(true);
   }
 
@@ -548,6 +558,8 @@ function UploadFile() {
     <div>
       {myState.Loading ? <AlertSnackbar open={true} message="Loading" severity="warning"/> : null}
       {myState.FileError ? <AlertSnackbar open={true} message="Error reading file! See About & Help" severity="error"/> : null}
+      {myState.BlankRangeError ? <AlertSnackbar open={true} message="You must select a range! Click RANGE START & RANGE STOP" severity="error"/> : null}
+      {myState.RangeError ? <AlertSnackbar open={true} message="Incorrect range! Stopping point must be greater than starting point" severity="error"/> : null}
       {myState.labelError ? <AlertSnackbar open={true} message="You must select a label! Click VIEW STATISTICS" severity="error"/> : null}
       {myState.statisticError ? <AlertSnackbar open={true} message="You must select a statistic! Click SET STATISTIC" severity="error"/> : null}
       {myState.FileExtError ? <AlertSnackbar open={true} message="Unsupported file type! csv or xlsx only" severity="error"/> : null}
@@ -559,14 +571,14 @@ function UploadFile() {
             <button onClick={rangeStartFunction} class="dropbtn">RANGE START</button>
             <div id="myDropdown" class="dropdown-content">
               <input type="text" placeholder="Search.." id="rangeStartInput" onKeyUp={rangeStartFilter}/>
-              {graphDataFinal.labels.map((label, index) => { return ( <a key={index} onClick={() => setRangeStart(index)}>{label}</a> )})}
+              {graphDataFinal.labels.map((label, index) => { return ( <a key={index} onClick={() => setRangeStart(index)}>{index}: {label}</a> )})}
             </div>
           </div>
           <div class="dropdown">
             <button onClick={rangeStopFunction} class="dropbtn">RANGE STOP</button>
             <div id="myDropdown2" class="dropdown-content">
               <input type="text" placeholder="Search.." id="rangeStopInput" onKeyUp={rangeStopFilter}/>
-              {graphDataFinal.labels.map((label, index) => { return ( <a key={index} onClick={() => setRangeStop(index)}>{label}</a> )})}
+              {graphDataFinal.labels.map((label, index) => { return ( <a key={index} onClick={() => setRangeStop(index)}>{index}: {label}</a> )})}
             </div>
           </div>
           <input className="add-user" type="submit" value="VIEW RANGES" onClick={() => GraphRange(rangeStart, rangeStop)}/>
@@ -626,23 +638,23 @@ function UploadFile() {
           >
           <Box sx={{ ...style}}>
           <div className="stats-modals">
-            <strong>Minimum: </strong>{statData.minimum}
-            <br/><br/>
-            <strong>Maximum: </strong>{statData.maximum}
-            <br/><br/>
-            <strong>Range: </strong>{statData.range}
-            <br/><br/>
-            <strong>Mean: </strong>{statData.mean}
-            <br/><br/>
-            <strong>Median: </strong>{statData.median}
-            <br/><br/>
-            <strong>Mode: </strong>{statData.mode}
-            <br/><br/>
-            <strong>Variance: </strong>{statData.variance}
-            <br/><br/>
-            <strong>Standard Deviation: </strong>{statData.stddev}
-            <br/><br/>
-            <strong>Coefficient of Variation: </strong>{statData.co}
+            <table>
+              <thead>
+              </thead>
+              <tbody>
+                <tr><td><strong>Minimum:</strong></td><td>{statData.minimum}</td></tr>
+                <tr><td><strong>Maximum:</strong></td><td>{statData.maximum}</td></tr>
+                <tr><td><strong>Range:</strong></td><td>{statData.range}</td></tr>
+                <tr><td><strong>Mean:</strong></td><td>{statData.mean}</td></tr>
+                <tr><td><strong>Median:</strong></td><td>{statData.median}</td></tr>
+                <tr><td><strong>Mode:</strong></td><td>{statData.mode}</td></tr>
+                <tr><td><strong>Variance:</strong></td><td>{statData.variance}</td></tr>
+                <tr><td><strong>Standard Deviation:</strong></td><td>{statData.stddev}</td></tr>
+                <tr><td><strong>Coefficient of Variation:</strong></td><td>{statData.co}</td></tr>
+                <tr><td><strong>25 Percentile</strong></td><td>{statData.quartiles[0]}</td></tr>
+                <tr><td><strong>75 Percentile</strong></td><td>{statData.quartiles[1]}</td></tr>
+              </tbody>
+            </table>
           </div>
           </Box>
           </Modal> : null}
