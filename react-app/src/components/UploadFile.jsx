@@ -10,6 +10,8 @@ import AlertSnackbar from './alerts/AlertSnackbar';
 import Plot from 'react-plotly.js';
 import SERVERIP from '../constants.js';
 import Statistics from 'statistics.js';
+import Box from '@mui/material/Box';
+import Modal from '@mui/material/Modal';
 
 // Upload file component
 function UploadFile() {
@@ -22,12 +24,27 @@ function UploadFile() {
   const [rangeStart, setRangeStart] = React.useState();
   const [rangeStop, setRangeStop] = React.useState();
   const [statData, setStatData] = React.useState({});
-  const [statLabel, setStatLabel] = React.useState();
+  const [statLabel, setStatLabel] = React.useState(null);
+  const [statsOpen, setStatsOpen] = React.useState(false);
+  const [statistic, setStatistic] = React.useState(null);
+  const handleOpenStats = () => setStatsOpen(true);
+  const handleCloseStats = () => setStatsOpen(false);
 
   // Do this on screen load
   React.useEffect(() => {
     GetGraphList();
   }, [])
+
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 600,
+    bgcolor: '#1d1f23',
+    border: '2px solid #2e363f',
+    boxShadow: 24,
+  };
 
   // Function for the file drop zone
   function dropHandler(ev) {
@@ -154,7 +171,7 @@ function UploadFile() {
 
   // Function for the statistics summary for the selected range
   function CalcStats(index, label) {
-    setStatLabel(label);
+    setStatLabel({index: index, label: label});
     var data = [];
     var statLength = graphDataFinal.data2[index].y.length - 1
     // Iterate over graph data, create a data array with values
@@ -182,10 +199,22 @@ function UploadFile() {
 
     // Adjust react hook with statistics data
     setStatData({minimum: stats.minimum("value"), maximum: stats.maximum("value"), range: stats.range("value"), mean: stats.mean("value"), median: stats.median("value"), mode: stats.mode("value"), variance: stats.variance("value"), stddev: stats.standardDeviation("value"), co: stats.coefficientOfVariation("value")})
+    setStatsOpen(true);
   }
 
   // Function for choosing a resolution
-  function ResolutionRange(start, stop, res, value, label) {
+  function ResolutionRange(start, stop, res) {
+    if (statLabel === null) {
+      setMyState({labelError: true, Loading: false, isUploaded: true});
+      setTimeout(() => setMyState({labelError: false, Loading: false, isUploaded: true}), 3000);
+      return
+    }
+    var value = statLabel.index;
+    if (statistic === null) {
+      setMyState({statisticError: true, Loading: false, isUploaded: true});
+      setTimeout(() => setMyState({statisticError: false, Loading: false, isUploaded: true}), 3000);
+      return
+    }
     var graphDataSets = [];
     var data = [];
     var values = [];
@@ -226,7 +255,13 @@ function UploadFile() {
       // Identify a new statistics
       var stats = new Statistics(data, columns, settings);
 
-      values.push(stats.median("value"));
+      if (statistic === "median") {
+        values.push(stats.median("value"));
+      } else if (statistic === "mean") {
+        values.push(stats.mean("value"));
+      } else if (statistic === "mode") {
+        values.push(stats.mode("value"));
+      }
 
       resTimestamp.push(tempTime);
 
@@ -247,7 +282,7 @@ function UploadFile() {
       getValues();
       const randomColor = Math.floor(Math.random()*16777215).toString(16);
       var color = "#" + randomColor;
-      graphDataSets.push({type: 'line', name: 'Resolution Data', mode: 'lines+markers', marker: {color: color}, x: resTimestamp, y: values});
+      graphDataSets.push({type: 'line', name: statistic, mode: 'lines+markers', marker: {color: color}, x: resTimestamp, y: values});
     } else {
       for (var z in graphDataFinal.data2[value].x) {
         var timestamp = new Date(graphDataFinal.data2[value].x[z]);
@@ -256,7 +291,7 @@ function UploadFile() {
     }
     console.log(graphDataSets);
     // Adjust react hook
-    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data2, data3: graphDataSets, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels, yLabels: graphDataFinal.yLabels, range: true, stats: false, res: true});
+    setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data2, data3: graphDataSets, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels, yLabels: graphDataFinal.yLabels, range: true, stats: true, res: true});
   }
 
   // Function for fetching the list of graphs from the database
@@ -478,6 +513,11 @@ function UploadFile() {
   function resFunction() {
     document.getElementById("myDropdown4").classList.toggle("show");
   }
+
+  // Function for the staistics dropdown
+  function statSettingFunction() {
+    document.getElementById("myDropdown5").classList.toggle("show");
+  }
   
   // Return statement for the upload file component, consists of alerts, graph when data is present, upload file drop zone,
   // graph options such as statistics and range, and graph history from the database
@@ -485,6 +525,8 @@ function UploadFile() {
     <div>
       {myState.Loading ? <AlertSnackbar open={true} message="Loading" severity="warning"/> : null}
       {myState.FileError ? <AlertSnackbar open={true} message="Error reading file! See About & Help" severity="error"/> : null}
+      {myState.labelError ? <AlertSnackbar open={true} message="You must select a label! Click VIEW STATISTICS" severity="error"/> : null}
+      {myState.statisticError ? <AlertSnackbar open={true} message="You must select a statistic! Click SET STATISTIC" severity="error"/> : null}
       {myState.FileExtError ? <AlertSnackbar open={true} message="Unsupported file type! csv or xlsx only" severity="error"/> : null}
       {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
       {myState.GraphDeleted ? <AlertSnackbar open={true} message="Graph deleted!" severity="success"/> : null}
@@ -505,46 +547,81 @@ function UploadFile() {
             </div>
           </div>
           <input className="add-user" type="submit" value="VIEW RANGES" onClick={() => GraphRange(rangeStart, rangeStop)}/>
-          <input className="add-user" type="submit" value="RESET RANGES" onClick={() =>     setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data, labels: graphDataFinal.labels})}/>
+          <input className="add-user" type="submit" value="RESET RANGES" onClick={() => setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels})}/>
         </div> : null}
       <br/><br/>
       {graphDataFinal.range ? <div className="left-margin"><div class="dropdown">
-            <button onClick={statFunction} class="dropbtn">VIEW STATISTICS</button>
+            <button onClick={statFunction} class="dropbtn">{'VIEW STATISTICS'}</button>
             <div id="myDropdown3" class="dropdown-content">
               <input type="text" placeholder="Search.." id="statInput" onKeyUp={statFilter}/>
               {graphDataFinal.yLabels.map((label, index) => { return ( <a key={index} onClick={() => CalcStats(index, label)}>{label}</a> )})}
             </div>
           </div>
           <div class="dropdown">
-            <button onClick={resFunction} class="dropbtn">VIEW RESOLUTION</button>
+            <button onClick={statSettingFunction} class="dropbtn">SET STATISTIC</button>
+            <div id="myDropdown5" class="dropdown-content">
+              <a onClick={() => setStatistic("mean")}>Mean</a>
+              <a onClick={() => setStatistic("median")}>Median</a>
+              <a onClick={() => setStatistic("mode")}>Mode</a>
+            </div>
+          </div>
+          <div class="dropdown">
+            <button onClick={resFunction} class="dropbtn">SET RESOLUTION</button>
             <div id="myDropdown4" class="dropdown-content">
-              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 1000, 0, statLabel)}>1 Second</a>
-              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 2000, 0, statLabel)}>2 Seconds</a>
-              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 3000, 0, statLabel)}>3 Seconds</a>
+              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 1000)}>1 Second</a>
+              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 2000)}>2 Seconds</a>
+              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 3000)}>3 Seconds</a>
             </div>
           </div>
         </div> : null}
 
-      {graphDataFinal.stats ? <div className="left-margin statZone">
-      <strong>Minimum: </strong>{statData.minimum}
-      <br/>
-      <strong>Maximum: </strong>{statData.maximum}
-      <br/>
-      <strong>Range: </strong>{statData.range}
-      <br/>
-      <strong>Mean: </strong>{statData.mean}
-      <br/>
-      <strong>Median: </strong>{statData.median}
-      <br/>
-      <strong>Mode: </strong>{statData.mode}
-      <br/>
-      <strong>Variance: </strong>{statData.variance}
-      <br/>
-      <strong>Standard Deviation: </strong>{statData.stddev}
-      <br/>
-      <strong>Coefficient of Variation: </strong>{statData.co}
-      <br/>
-      </div> : null}
+      {/* {graphDataFinal.stats ? <div id="stat-summary" className="left-margin statZone">
+            <strong>Minimum: </strong>{statData.minimum}
+            <br/>
+            <strong>Maximum: </strong>{statData.maximum}
+            <br/>
+            <strong>Range: </strong>{statData.range}
+            <br/>
+            <strong>Mean: </strong>{statData.mean}
+            <br/>
+            <strong>Median: </strong>{statData.median}
+            <br/>
+            <strong>Mode: </strong>{statData.mode}
+            <br/>
+            <strong>Variance: </strong>{statData.variance}
+            <br/>
+            <strong>Standard Deviation: </strong>{statData.stddev}
+            <br/>
+            <strong>Coefficient of Variation: </strong>{statData.co}
+            <br/>
+            </div> : null} */}
+
+      {graphDataFinal.stats ? <Modal
+            open={statsOpen}
+            onClose={handleCloseStats}
+          >
+          <Box sx={{ ...style}}>
+          <div className="stats-modals">
+            <strong>Minimum: </strong>{statData.minimum}
+            <br/><br/>
+            <strong>Maximum: </strong>{statData.maximum}
+            <br/><br/>
+            <strong>Range: </strong>{statData.range}
+            <br/><br/>
+            <strong>Mean: </strong>{statData.mean}
+            <br/><br/>
+            <strong>Median: </strong>{statData.median}
+            <br/><br/>
+            <strong>Mode: </strong>{statData.mode}
+            <br/><br/>
+            <strong>Variance: </strong>{statData.variance}
+            <br/><br/>
+            <strong>Standard Deviation: </strong>{statData.stddev}
+            <br/><br/>
+            <strong>Coefficient of Variation: </strong>{statData.co}
+          </div>
+          </Box>
+          </Modal> : null}
 
       {myState.isUploaded ? <div id="myPlot"><Plot
           data={graphDataFinal.res ? graphDataFinal.data3 : graphDataFinal.data2}

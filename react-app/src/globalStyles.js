@@ -42,6 +42,10 @@ export const GlobalStyles = createGlobalStyle`
   .theme {
     position: absolute;
   }
+  .stats-modals {
+	  color: #D2E2FF;
+	  padding: 16px;
+  }
   .formStyle7 {
     background: ${({ theme }) => theme.formStyle7.background};
     padding: 20px;
