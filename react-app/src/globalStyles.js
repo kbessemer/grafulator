@@ -560,7 +560,7 @@ export const GlobalStyles = createGlobalStyle`
 	}
 
 	/* The search field */
-	#rangeStartInput, #rangeStopInput {
+	#rangeStartInput, #rangeStopInput, #statInput, #formulaInput {
 	box-sizing: border-box;
 	background-image: url('searchicon.png');
 	background-position: 14px 12px;
@@ -572,7 +572,7 @@ export const GlobalStyles = createGlobalStyle`
 	}
 
 	/* The search field when it gets focus/clicked on */
-	#rangeStartInput:focus, #rangeStopInput:focus {outline: 3px solid #ddd;}
+	#rangeStartInput:focus, #rangeStopInput:focus, #statInput:focus, #formulaInput:focus {outline: 3px solid #ddd;}
 
 	/* The container <div> - needed to position the dropdown content */
 	.dropdown {

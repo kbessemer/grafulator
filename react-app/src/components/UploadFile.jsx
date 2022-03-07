@@ -29,6 +29,7 @@ function UploadFile() {
   const [statsOpen, setStatsOpen] = React.useState(false);
   const [statistic, setStatistic] = React.useState(null);
   const [resolutions, setResolutions] = React.useState([]);
+  const [formula, setFormula] = React.useState(null);
   const handleOpenStats = () => setStatsOpen(true);
   const handleCloseStats = () => setStatsOpen(false);
 
@@ -287,12 +288,12 @@ function UploadFile() {
       setTimeout(() => setMyState({labelError: false, Loading: false, isUploaded: true}), 3000);
       return
     }
-    var value = statLabel.index;
     if (statistic === null) {
       setMyState({statisticError: true, Loading: false, isUploaded: true});
       setTimeout(() => setMyState({statisticError: false, Loading: false, isUploaded: true}), 3000);
       return
     }
+    var value = statLabel.index;
     var graphDataSets = [];
     var data = [];
     var values = [];
@@ -384,6 +385,11 @@ function UploadFile() {
         graphDataSets.push({type: 'line', name: formula === null ? statistic : formula, mode: 'lines+markers', marker: {color: color}, x: resTimestamp, y: values});
       } 
     } else {
+      if (formula === null) {
+        setMyState({formulaError: true, Loading: false, isUploaded: true});
+        setTimeout(() => setMyState({formulaError: false, Loading: false, isUploaded: true}), 3000);
+        return
+      }
       graphDataSets.push(graphDataFinal.data2[value]);
 
       for (var z = start; z <= stop; z++) {
@@ -653,6 +659,14 @@ function UploadFile() {
   function statSettingFunction() {
     document.getElementById("myDropdown5").classList.toggle("show");
   }
+
+  function handleFormula(event) {
+    setFormula(event.target.value);
+    setStatistic("formula");
+    if (event.target.value === "") {
+      setFormula(null);
+    }
+  }
   
   // Return statement for the upload file component, consists of alerts, graph when data is present, upload file drop zone,
   // graph options such as statistics and range, and graph history from the database
@@ -662,6 +676,7 @@ function UploadFile() {
       {myState.FileError ? <AlertSnackbar open={true} message="Error reading file! See About & Help" severity="error"/> : null}
       {myState.BlankRangeError ? <AlertSnackbar open={true} message="You must select a range! Click RANGE START & RANGE STOP" severity="error"/> : null}
       {myState.RangeError ? <AlertSnackbar open={true} message="Incorrect range! Stopping point must be greater than starting point" severity="error"/> : null}
+      {myState.formulaError ? <AlertSnackbar open={true} message="You must input a formula to use a 0 second resolution!" severity="error"/> : null}
       {myState.labelError ? <AlertSnackbar open={true} message="You must select a label! Click VIEW STATISTICS" severity="error"/> : null}
       {myState.statisticError ? <AlertSnackbar open={true} message="You must select a statistic! Click SET STATISTIC" severity="error"/> : null}
       {myState.FileExtError ? <AlertSnackbar open={true} message="Unsupported file type! csv or xlsx only" severity="error"/> : null}
@@ -701,12 +716,13 @@ function UploadFile() {
               <a href="#" onClick={() => setStatistic("mean")}>Mean</a>
               <a href="#" onClick={() => setStatistic("median")}>Median</a>
               <a href="#" onClick={() => setStatistic("mode")}>Mode</a>
+              <input type="text" placeholder="Custom formula..." id="formulaInput" onChange={handleFormula}/>
             </div>
           </div>
           <div class="dropdown">
             <button onClick={resFunction} class="dropbtn">SET RESOLUTION</button>
             <div id="myDropdown4" class="dropdown-content">
-              {resolutions.map((resolution, index) => { return ( <a key={index} href="#" onClick={() => ResolutionRange(rangeStart, rangeStop, resolution, null)}>{resolution} seconds</a> )})}
+              {resolutions.map((resolution, index) => { return ( <a key={index} href="#" onClick={() => ResolutionRange(rangeStart, rangeStop, resolution, formula)}>{resolution} seconds</a> )})}
             </div>
           </div>
         </div> : null}
