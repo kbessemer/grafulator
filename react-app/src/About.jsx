@@ -52,6 +52,14 @@ function About() {
             <img src="example3.png"></img>
             <br></br>
             <img src="example2.png"></img>
+            <hr></hr>
+            <h2>Timestamp Column</h2>
+            Please ensure your timestamp column is the first column of the spreadsheet file.<br/>
+            <br/>
+            Accepted timestamp format:<br/>
+            Any epoch format: seconds, milliseconds, or nanoseconds (1633696908886)<br/>
+            Or a format like this: 2019-02-24T23:16:57.850Z<br/>
+            Or: 2022/03/05 01:45:56
         </div>
     )
 }

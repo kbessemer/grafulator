@@ -32,6 +32,12 @@ export const GlobalStyles = createGlobalStyle`
   a:hover {
     color: ${({ theme }) => theme.ahover.color};
   }
+  tr:hover {
+	  background: ${({ theme }) => theme.tr.background};
+  }
+  .stat-tr:hover{
+	  background: #04597c;
+  }
   .logo {
     position: relative;
     margin-left: 40px;

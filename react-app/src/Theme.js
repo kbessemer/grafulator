@@ -86,6 +86,9 @@ export const lightTheme = {
     },
     icon: {
         filter: 'contrast(0%)',
+    },
+    tr: {
+        background: '#afb6c3',
     }
 }
 
@@ -171,5 +174,8 @@ export const darkTheme = {
     },
     icon: {
         filter: 'contrast(100%)',
+    },
+    tr: {
+        background: '#1d1f23',
     }
 }

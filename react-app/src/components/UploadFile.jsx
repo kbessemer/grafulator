@@ -5,6 +5,7 @@
 // GitHub: https://github.com/kbessemer
 
 import React from 'react';
+import { evaluate } from 'mathjs';
 import Tooltip2 from '@mui/material/Tooltip';
 import AlertSnackbar from './alerts/AlertSnackbar';
 import Plot from 'react-plotly.js';
@@ -27,6 +28,7 @@ function UploadFile() {
   const [statLabel, setStatLabel] = React.useState(null);
   const [statsOpen, setStatsOpen] = React.useState(false);
   const [statistic, setStatistic] = React.useState(null);
+  const [resolutions, setResolutions] = React.useState([]);
   const handleOpenStats = () => setStatsOpen(true);
   const handleCloseStats = () => setStatsOpen(false);
 
@@ -108,25 +110,63 @@ function UploadFile() {
 
   // Function for creating the graph
   function DrawGraph(data, labels) {
+    var pointers = {
+      time: 1000,
+      label: 30,
+    }
+    var test = evaluate('time / label', pointers);
+    console.log(test);
     var graphDataSets = [];
-    var dateLabels = [];
-    var epoch = 1646419606
-    epoch *= 1000
-    var date = new Date(epoch)
-    console.log(date)
-    if (labels[0].search("-") === -1) {
+    var dateLabels = {
+      format: '',
+      labels: [],
+    };
+    var labels2 = [];
+
+    if (labels[0].search("-") === -1 && labels[0].search("/") === -1) {
+      console.log("Inside epoch")
+      if (labels[0].length === 10) {
+        dateLabels.format = 'seconds';
+      } else if (labels[0].length === 13) {
+        dateLabels.format = 'milliseconds';
+      } else {
+        dateLabels.format = 'nanoseconds';
+      }
       for (var x in labels) {
-        dateLabels.push(labels[x]);
+        dateLabels.labels.push(labels[x]);
+      }
+    } else {
+      console.log("Outside epoch")
+      var timestamp = new Date(labels[0]);
+      timestamp = timestamp.getTime().toString()
+      if (timestamp.length === 10) {
+        dateLabels.format = 'seconds';
+      } else if (timestamp.length === 13) {
+        dateLabels.format = 'milliseconds';
+      } else {
+        dateLabels.format = 'nanoseconds';
+      }
+      for (var x in labels) {
+        timestamp = new Date(labels[x]);
+        dateLabels.labels.push(timestamp.getTime().toString());
+      }
+    }
+    var hour = dateLabels.labels[0].toLocaleString("en-US", {hour: "numeric"})
+    var minute = dateLabels.labels[0].toLocaleString("en-US", {minute: "numeric"})
+    var seconds = dateLabels.labels[0].toLocaleString("en-US", {second: "numeric"})
+
+    if (labels[0].search("-") === -1 && labels[0].search("/") === -1) {
+      for (var x in labels) {
+        labels2.push(labels[x]);
       }
     } else {
       for (var x in labels) {
         var timestamp = new Date(labels[x]);
-        dateLabels.push(timestamp.getTime());
+        timestamp = timestamp.getTime().toString();
+        labels2.push(timestamp);
       }
     }
-    var hour = dateLabels[0].toLocaleString("en-US", {hour: "numeric"})
-    var minute = dateLabels[0].toLocaleString("en-US", {minute: "numeric"})
-    var seconds = dateLabels[0].toLocaleString("en-US", {second: "numeric"})
+
     // Set graph size
     setPlotSize({width: 1100, height: 700});
     // Iterate over the data in api response
@@ -135,10 +175,10 @@ function UploadFile() {
       const randomColor = Math.floor(Math.random()*16777215).toString(16);
       var color = "#" + randomColor;
       // Create a data entry for each line
-      graphDataSets.push({type: 'line', name: data[x].label, mode: 'lines+markers', marker: {color: color}, x: labels, y: data[x].data});
+      graphDataSets.push({type: 'line', name: data[x].label, mode: 'lines+markers', marker: {color: color}, x: labels2, y: data[x].data});
     }
     // Adjust react hooks
-    setGraphDataFinal({data: graphDataSets, data2: graphDataSets, labels: labels, dateLabels: dateLabels, stats: false});
+    setGraphDataFinal({data: graphDataSets, data2: graphDataSets, labels: labels2, dateLabels: dateLabels, stats: false});
     setMyState({Loading: false, isUploaded: true})
   }
 
@@ -175,6 +215,35 @@ function UploadFile() {
       // Create a data entry for each line
       graphDataSets.push({type: 'line', name: graphDataFinal.data[x].name, mode: 'lines+markers', marker: {color: color}, x: labels, y: rangeData});
     }
+
+    var format = graphDataFinal.dateLabels.format;
+
+    for (var x in graphDataFinal.dateLabels.labels) {
+      var tempStop = start + 1;
+      var minimum = 999999999999;
+      if (tempStop > stop) {
+        break
+      }
+      var difference = parseInt(graphDataFinal.dateLabels.labels[tempStop]) - parseInt(graphDataFinal.dateLabels.labels[start])
+      if (difference < minimum) {
+        minimum = difference;
+      }
+    }
+
+    if (format === 'milliseconds') {
+      minimum /= 1000;
+    } else if (format === 'nanoseconds') {
+      minimum /= 1000000000;
+    }
+
+    var tempRes = [];
+    tempRes.push(0);
+    tempRes.push(minimum * 2);
+    tempRes.push(minimum * 3);
+    tempRes.push(minimum * 4);
+
+    setResolutions(tempRes);
+
     // Adjust react hook
     setGraphDataFinal({data: graphDataFinal.data, data2: graphDataSets, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels, yLabels: yLabels, range: true, stats: false});
   }
@@ -186,7 +255,6 @@ function UploadFile() {
     var statLength = graphDataFinal.data2[index].y.length - 1
     // Iterate over graph data, create a data array with values
     for (var x = 0; x <= statLength; x++) {
-      console.log(parseFloat(graphDataFinal.data2[index].y[x]));
       data.push({ID: x, value: parseFloat(graphDataFinal.data2[index].y[x])})
     }
     // Adjust react hook
@@ -213,7 +281,7 @@ function UploadFile() {
   }
 
   // Function for choosing a resolution
-  function ResolutionRange(start, stop, res) {
+  function ResolutionRange(start, stop, res, formula) {
     if (statLabel === null) {
       setMyState({labelError: true, Loading: false, isUploaded: true});
       setTimeout(() => setMyState({labelError: false, Loading: false, isUploaded: true}), 3000);
@@ -232,73 +300,107 @@ function UploadFile() {
     var counter = 1;
     var tempTime = '';
 
-    var startSeconds = graphDataFinal.dateLabels[start];
+    if (res != 0) {
+      var format = graphDataFinal.dateLabels.format;
+      if (format === 'milliseconds') {
+        res *= 1000;
+      } else if (format === 'nanoseconds') {
+        res *= 1000000000;
+      }
 
-    startSeconds = parseInt(startSeconds);
-    var maxSeconds = startSeconds + res;
-    console.log(graphDataFinal.data2[value].x[0]);
-    graphDataSets.push(graphDataFinal.data2[value]);
+      var startSeconds = graphDataFinal.dateLabels.labels[start];
 
-    tempTime = parseInt(graphDataFinal.data2[value].x);
+      startSeconds = parseInt(startSeconds);
+      var maxSeconds = startSeconds + res;
+      graphDataSets.push(graphDataFinal.data2[value]);
 
-    function getValues() {
-      for (var z in graphDataFinal.data2[value].x) {
-        var tempSeconds = parseInt(graphDataFinal.data2[value].x[z]);
-        if (startSeconds <= tempSeconds && tempSeconds <= maxSeconds) {
-          console.log("Found seconds within resolution")
-          data.push({ID: counter, value: parseFloat(graphDataFinal.data2[value].y[z])});
-          counter += 1;
+      tempTime = parseInt(graphDataFinal.data2[value].x);
+
+      function getValues() {
+        for (var z in graphDataFinal.data2[value].x) {
+          var tempSeconds = parseInt(graphDataFinal.data2[value].x[z]);
+          if (startSeconds <= tempSeconds && tempSeconds <= maxSeconds) {
+            console.log("Found seconds within resolution")
+            data.push({ID: counter, value: parseFloat(graphDataFinal.data2[value].y[z])});
+            counter += 1;
+          }
         }
+
+        if (formula === null) {
+          // Identify columns for statistics.js
+          var columns = {
+            ID: 'ordinal',
+            value: 'interval',
+          }
+
+            // Identify settings for statistics.js
+          var settings = {
+            excludeColumns: ["ID"],
+            suppressWarnings: true,
+          };
+
+          // Identify a new statistics
+          var stats = new Statistics(data, columns, settings);
+
+          if (statistic === "median") {
+            values.push(stats.median("value"));
+          } else if (statistic === "mean") {
+            values.push(stats.mean("value"));
+          } else if (statistic === "mode") {
+            values.push(stats.mode("value"));
+          }
+        } else {
+          var sum = 0;
+          var counter = 0;
+          for (var x in data) {
+            sum += data[x].value;
+            counter += 1;
+          }
+          var avg = sum / counter;
+          var pointer = {x: avg};
+          var val = evaluate(formula, pointer)
+          values.push(val);
+        }
+
+        console.log(data);
+        resTimestamp.push(tempTime);
+        data = [];
+
+        startSeconds += res;
+        maxSeconds += res;
+        tempTime += res;
+
+        if (startSeconds <= tempSeconds) {
+          getValues();
+        }
+
       }
-      // Identify columns for statistics.js
-      var columns = {
-        ID: 'ordinal',
-        value: 'interval',
-      }
 
-        // Identify settings for statistics.js
-      var settings = {
-        excludeColumns: ["ID"],
-        suppressWarnings: true,
-      };
-
-      // Identify a new statistics
-      var stats = new Statistics(data, columns, settings);
-
-      if (statistic === "median") {
-        values.push(stats.median("value"));
-      } else if (statistic === "mean") {
-        values.push(stats.mean("value"));
-      } else if (statistic === "mode") {
-        values.push(stats.mode("value"));
-      }
-
-      resTimestamp.push(tempTime);
-
-      data = [];
-
-      startSeconds += res;
-      maxSeconds += res;
-      tempTime += res;
-
-      if (startSeconds <= tempSeconds) {
+      if (graphDataFinal.data2[value].x[0].search("-") === -1) {
+        console.log("Found epoch time")
         getValues();
-      }
-
-    }
-
-    if (graphDataFinal.data2[value].x[0].search("-") === -1) {
-      console.log("Found epoch time")
-      getValues();
-      const randomColor = Math.floor(Math.random()*16777215).toString(16);
-      var color = "#" + randomColor;
-      graphDataSets.push({type: 'line', name: statistic, mode: 'lines+markers', marker: {color: color}, x: resTimestamp, y: values});
+        const randomColor = Math.floor(Math.random()*16777215).toString(16);
+        var color = "#" + randomColor;
+        graphDataSets.push({type: 'line', name: formula === null ? statistic : formula, mode: 'lines+markers', marker: {color: color}, x: resTimestamp, y: values});
+      } 
     } else {
-      for (var z in graphDataFinal.data2[value].x) {
-        var timestamp = new Date(graphDataFinal.data2[value].x[z]);
-        
+      graphDataSets.push(graphDataFinal.data2[value]);
+
+      for (var z = start; z <= stop; z++) {
+        resTimestamp.push(graphDataFinal.data2[value].x[z])
+        var pointer = {x: parseFloat(graphDataFinal.data2[value].y[z])}
+        var val = evaluate(formula, pointer)
+        values.push(val);
       }
+
+      if (graphDataFinal.data2[value].x[0].search("-") === -1) {
+        console.log("Found epoch time")
+        const randomColor = Math.floor(Math.random()*16777215).toString(16);
+        var color = "#" + randomColor;
+        graphDataSets.push({type: 'line', name: formula === null ? statistic : formula, mode: 'lines+markers', marker: {color: color}, x: resTimestamp, y: values});
+      } 
     }
+
     console.log(graphDataSets);
     // Adjust react hook
     setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data2, data3: graphDataSets, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels, yLabels: graphDataFinal.yLabels, range: true, stats: true, res: true});
@@ -568,69 +670,46 @@ function UploadFile() {
       {myState.isUploaded ? <div className="left-margin"><br></br><br></br><a onClick={toggleFullscreen} href="#"><Tooltip2 title="Enter Fullscreen"><img className="icon" src="images/fullscreen.png"></img></Tooltip2></a></div> : null}
       
       {myState.isUploaded ? <div className="left-margin"><div class="dropdown">
-            <button onClick={rangeStartFunction} class="dropbtn">RANGE START</button>
+            <button onClick={rangeStartFunction} className="dropbtn">RANGE START</button>
             <div id="myDropdown" class="dropdown-content">
               <input type="text" placeholder="Search.." id="rangeStartInput" onKeyUp={rangeStartFilter}/>
-              {graphDataFinal.labels.map((label, index) => { return ( <a key={index} onClick={() => setRangeStart(index)}>{index}: {label}</a> )})}
+              {graphDataFinal.labels.map((label, index) => { return ( <a key={index} href="#" onClick={() => setRangeStart(index)}>{index}: {label}</a> )})}
             </div>
           </div>
           <div class="dropdown">
-            <button onClick={rangeStopFunction} class="dropbtn">RANGE STOP</button>
+            <button onClick={rangeStopFunction} className="dropbtn">RANGE STOP</button>
             <div id="myDropdown2" class="dropdown-content">
               <input type="text" placeholder="Search.." id="rangeStopInput" onKeyUp={rangeStopFilter}/>
-              {graphDataFinal.labels.map((label, index) => { return ( <a key={index} onClick={() => setRangeStop(index)}>{index}: {label}</a> )})}
+              {graphDataFinal.labels.map((label, index) => { return ( <a key={index} href="#" onClick={() => setRangeStop(index)}>{index}: {label}</a> )})}
             </div>
           </div>
-          <input className="add-user" type="submit" value="VIEW RANGES" onClick={() => GraphRange(rangeStart, rangeStop)}/>
-          <input className="add-user" type="submit" value="RESET RANGES" onClick={() => setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels})}/>
-          <input className="add-user" type="submit" value="CHANGE COLORS" onClick={() => ChangeColors()}/>
+          <button onClick={() => GraphRange(rangeStart, rangeStop)} className="dropbtn">VIEW RANGES</button>
+          <button onClick={() => setGraphDataFinal({data: graphDataFinal.data, data2: graphDataFinal.data, labels: graphDataFinal.labels, dateLabels: graphDataFinal.dateLabels})} className="dropbtn">RESET RANGES</button>
+          <button onClick={() => ChangeColors()} className="dropbtn">CHANGE COLORS</button>
         </div> : null}
       <br/><br/>
       {graphDataFinal.range ? <div className="left-margin"><div class="dropdown">
-            <button onClick={statFunction} class="dropbtn">{'VIEW STATISTICS'}</button>
+            <button onClick={statFunction} class="dropbtn">VIEW STATISTICS</button>
             <div id="myDropdown3" class="dropdown-content">
               <input type="text" placeholder="Search.." id="statInput" onKeyUp={statFilter}/>
-              {graphDataFinal.yLabels.map((label, index) => { return ( <a key={index} onClick={() => CalcStats(index, label)}>{label}</a> )})}
+              {graphDataFinal.yLabels.map((label, index) => { return ( <a key={index} href="#" onClick={() => CalcStats(index, label)}>{label}</a> )})}
             </div>
           </div>
           <div class="dropdown">
             <button onClick={statSettingFunction} class="dropbtn">SET STATISTIC</button>
             <div id="myDropdown5" class="dropdown-content">
-              <a onClick={() => setStatistic("mean")}>Mean</a>
-              <a onClick={() => setStatistic("median")}>Median</a>
-              <a onClick={() => setStatistic("mode")}>Mode</a>
+              <a href="#" onClick={() => setStatistic("mean")}>Mean</a>
+              <a href="#" onClick={() => setStatistic("median")}>Median</a>
+              <a href="#" onClick={() => setStatistic("mode")}>Mode</a>
             </div>
           </div>
           <div class="dropdown">
             <button onClick={resFunction} class="dropbtn">SET RESOLUTION</button>
             <div id="myDropdown4" class="dropdown-content">
-              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 1000)}>1 Second</a>
-              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 2000)}>2 Seconds</a>
-              <a onClick={() => ResolutionRange(rangeStart, rangeStop, 3000)}>3 Seconds</a>
+              {resolutions.map((resolution, index) => { return ( <a key={index} href="#" onClick={() => ResolutionRange(rangeStart, rangeStop, resolution, null)}>{resolution} seconds</a> )})}
             </div>
           </div>
         </div> : null}
-
-      {/* {graphDataFinal.stats ? <div id="stat-summary" className="left-margin statZone">
-            <strong>Minimum: </strong>{statData.minimum}
-            <br/>
-            <strong>Maximum: </strong>{statData.maximum}
-            <br/>
-            <strong>Range: </strong>{statData.range}
-            <br/>
-            <strong>Mean: </strong>{statData.mean}
-            <br/>
-            <strong>Median: </strong>{statData.median}
-            <br/>
-            <strong>Mode: </strong>{statData.mode}
-            <br/>
-            <strong>Variance: </strong>{statData.variance}
-            <br/>
-            <strong>Standard Deviation: </strong>{statData.stddev}
-            <br/>
-            <strong>Coefficient of Variation: </strong>{statData.co}
-            <br/>
-            </div> : null} */}
 
       {graphDataFinal.stats ? <Modal
             open={statsOpen}
@@ -642,17 +721,17 @@ function UploadFile() {
               <thead>
               </thead>
               <tbody>
-                <tr><td><strong>Minimum:</strong></td><td>{statData.minimum}</td></tr>
-                <tr><td><strong>Maximum:</strong></td><td>{statData.maximum}</td></tr>
-                <tr><td><strong>Range:</strong></td><td>{statData.range}</td></tr>
-                <tr><td><strong>Mean:</strong></td><td>{statData.mean}</td></tr>
-                <tr><td><strong>Median:</strong></td><td>{statData.median}</td></tr>
-                <tr><td><strong>Mode:</strong></td><td>{statData.mode}</td></tr>
-                <tr><td><strong>Variance:</strong></td><td>{statData.variance}</td></tr>
-                <tr><td><strong>Standard Deviation:</strong></td><td>{statData.stddev}</td></tr>
-                <tr><td><strong>Coefficient of Variation:</strong></td><td>{statData.co}</td></tr>
-                <tr><td><strong>25 Percentile</strong></td><td>{statData.quartiles[0]}</td></tr>
-                <tr><td><strong>75 Percentile</strong></td><td>{statData.quartiles[1]}</td></tr>
+                <tr className="stat-tr"><td><strong>Minimum:</strong></td><td>{statData.minimum}</td></tr>
+                <tr className="stat-tr"><td><strong>Maximum:</strong></td><td>{statData.maximum}</td></tr>
+                <tr className="stat-tr"><td><strong>Range:</strong></td><td>{statData.range}</td></tr>
+                <tr className="stat-tr"><td><strong>Mean:</strong></td><td>{statData.mean}</td></tr>
+                <tr className="stat-tr"><td><strong>Median:</strong></td><td>{statData.median}</td></tr>
+                <tr className="stat-tr"><td><strong>Mode:</strong></td><td>{statData.mode}</td></tr>
+                <tr className="stat-tr"><td><strong>Variance:</strong></td><td>{statData.variance}</td></tr>
+                <tr className="stat-tr"><td><strong>Standard Deviation:</strong></td><td>{statData.stddev}</td></tr>
+                <tr className="stat-tr"><td><strong>Coefficient of Variation:</strong></td><td>{statData.co}</td></tr>
+                <tr className="stat-tr"><td><strong>25 Percentile</strong></td><td>{statData.quartiles[0]}</td></tr>
+                <tr className="stat-tr"><td><strong>75 Percentile</strong></td><td>{statData.quartiles[1]}</td></tr>
               </tbody>
             </table>
           </div>

@@ -163,7 +163,7 @@ function GetUsers() {
           {myState.DeleteSelfError ? <AlertSnackbar open={true} message="You can not delete yourself!" severity="error"/> : null}
           {myState.UserDeleted ? <AlertSnackbar open={true} message="User deleted!" severity="success"/> : null}
           {myState.UserAdded ? <AlertSnackbar open={true} message="User added!" severity="success"/> : null}
-          <input className="add-user" type="submit" value="ADD USER" onClick={handleOpen}/>
+          <button onClick={handleOpen} className="dropbtn">ADD USER</button>
           <Modal
             open={open}
             onClose={handleClose}
@@ -186,7 +186,7 @@ function GetUsers() {
                     <input type="password" name="password verify" maxLength="100" value={formPass2} onChange={handlePass2}/>
                 </li>
                 <li>
-                    <input type="submit" value="ADD USER" onClick={AddUserPost}/>
+                    <button onClick={AddUserPost} className="dropbtn">ADD USER</button>
                 </li>
               </ul>
             </form>

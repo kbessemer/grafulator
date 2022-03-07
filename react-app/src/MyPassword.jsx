@@ -112,7 +112,7 @@ function MyPassword() {
                 <input type="password" name="verify new password" maxLength="100" value={formNewPass2} onChange={handleNewPass2}/>
             </li>
             <li>
-                <input type="submit" value="SUBMIT" onClick={PasswordPost}/>
+                <button onClick={PasswordPost} className="dropbtn">SUBMIT</button>
             </li>
           </ul>
         </form>
