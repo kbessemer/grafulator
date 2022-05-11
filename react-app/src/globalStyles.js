@@ -10,6 +10,11 @@ export const GlobalStyles = createGlobalStyle`
   html, .login-screen, .App, .App-Header, body {
     background: ${({ theme }) => theme.AppHeader.background};
     color: ${({ theme }) => theme.body.text};
+	padding-top: 0px;
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin: auto;
   }
   .login-screen {
     display:flex;
@@ -17,15 +22,33 @@ export const GlobalStyles = createGlobalStyle`
     margin: auto;
   }
   .App-header {
-    align-items: left;
-    justify-content: left;
     font-size: 18px;
-    margin-left: 250px;
   }
   body {
     font-family: sans-serif;
     transition: all 0.50s linear;
   }
+  .dashboard {
+	display:flex;
+	justify-content: center;
+    margin: auto;
+	width: 1000px;
+	margin-top: 50px;
+  }
+  .about {
+	justify-content: center;
+    margin: auto;
+	width: 1000px;
+	margin-top: 50px;
+  }
+  .Content-Row {
+	width: 100%;
+	padding-top: 5px;
+	display: flex;
+	align-items: center;
+	margin-top: 10px;
+	margin-bottom: 15px;
+	}
   a {
     color: ${({ theme }) => theme.a.color};
   }
@@ -44,9 +67,6 @@ export const GlobalStyles = createGlobalStyle`
 	width: 500px;
 	height: 100px;
 	
-  }
-  .theme {
-    position: absolute;
   }
   .stats-modals {
 	  color: #D2E2FF;
@@ -272,7 +292,7 @@ export const GlobalStyles = createGlobalStyle`
   }
   .dropZone {
 	  color: ${({ theme }) => theme.dropZoneclass.color};
-	  font-size: 18px;
+	font-size: 18px;
     text-align: center;
   }
   .icon {

@@ -6,12 +6,12 @@
 
 import React from 'react';
 import { Box, LinearProgress } from '@mui/material';
-import AlertSnackbar from './components/alerts/AlertSnackbar';
-import PermanentDrawerRight from "./components/Drawer";
-import SERVERIP from './constants';
+import AlertSnackbar from '../controller/AlertSnackbar';
+import MyAppBar from '../controller/AppBar';
+import SERVERIP from '../constants';
 
 // MyPassword component
-function MyPassword() {
+function MyPassword(props) {
 
     // React hooks
     const [formPass, setFormPass] = React.useState("");
@@ -85,38 +85,36 @@ function MyPassword() {
     // Return statement for mypassword component, consists of alerts and a change password form
     return (
       <div>
-        <div className="logo">
-          <img src="images/logo.png"></img>
+        <MyAppBar setTheme={props.setTheme} theme={props.theme} theme2={props.theme2}/>
+        <div className="dashboard">
+          {myState.FieldsError ? <AlertSnackbar open={true} message="All fields required!" severity="error"/> : null}
+          {myState.PasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
+          {myState.PasswordMismatch ? <AlertSnackbar open={true} message="New passwords do not match!" severity="error"/> : null}
+          {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
+          {myState.Success ? <AlertSnackbar open={true} message="Password changed!" severity="success"/> : null}
+          {myState.Loading ? <Box sx={{ width: '100%' }}>
+                  <LinearProgress />
+                </Box> : null}
+          <form className="formStyle8">
+            <ul>
+              <li>
+                  <label htmlFor="password">Current Password</label>
+                  <input type="password" name="password" maxLength="100" value={formPass} onChange={handlePass}/>
+              </li>
+              <li>
+                  <label htmlFor="new password">New Password</label>
+                  <input type="password" name="new password" maxLength="100" value={formNewPass} onChange={handleNewPass}/>
+              </li>
+              <li>
+                  <label htmlFor="verify new password">Verify New Password</label>
+                  <input type="password" name="verify new password" maxLength="100" value={formNewPass2} onChange={handleNewPass2}/>
+              </li>
+              <li>
+                  <button onClick={PasswordPost} className="dropbtn">SUBMIT</button>
+              </li>
+            </ul>
+          </form>
         </div>
-        <PermanentDrawerRight />
-        {myState.FieldsError ? <AlertSnackbar open={true} message="All fields required!" severity="error"/> : null}
-        {myState.PasswordError ? <AlertSnackbar open={true} message="Incorrect password!" severity="error"/> : null}
-        {myState.PasswordMismatch ? <AlertSnackbar open={true} message="New passwords do not match!" severity="error"/> : null}
-        {myState.SessionError ? <AlertSnackbar open={true} message="Session has expired! Login again" severity="error"/> : null}
-        {myState.Success ? <AlertSnackbar open={true} message="Password changed!" severity="success"/> : null}
-        {myState.Loading ? <Box sx={{ width: '100%' }}>
-                <LinearProgress />
-              </Box> : null}
-        <form className="formStyle8">
-          <ul>
-            <li>
-                <label htmlFor="password">Current Password</label>
-                <input type="password" name="password" maxLength="100" value={formPass} onChange={handlePass}/>
-            </li>
-            <li>
-                <label htmlFor="new password">New Password</label>
-                <input type="password" name="new password" maxLength="100" value={formNewPass} onChange={handleNewPass}/>
-            </li>
-            <li>
-                <label htmlFor="verify new password">Verify New Password</label>
-                <input type="password" name="verify new password" maxLength="100" value={formNewPass2} onChange={handleNewPass2}/>
-            </li>
-            <li>
-                <button onClick={PasswordPost} className="dropbtn">SUBMIT</button>
-            </li>
-          </ul>
-        </form>
-
       </div>
     )
   }

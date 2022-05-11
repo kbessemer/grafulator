@@ -7,7 +7,7 @@
 import React from 'react';
 import { evaluate } from 'mathjs';
 import Tooltip2 from '@mui/material/Tooltip';
-import AlertSnackbar from './alerts/AlertSnackbar';
+import AlertSnackbar from '../controller/AlertSnackbar';
 import Plot from 'react-plotly.js';
 import SERVERIP from '../constants.js';
 import Statistics from 'statistics.js';
@@ -764,7 +764,8 @@ function UploadFile() {
         </div>
         
         <br></br>
-        <div><form className="formStyle8">
+        <div>
+            <form className="formStyle8">
               <ul>
                 <li>
                     <label htmlFor="myFilter">Search</label>

@@ -5,20 +5,19 @@
 // GitHub: https://github.com/kbessemer
 
 import React from 'react';
-import PermanentDrawerRight from "./components/Drawer";
-import GetUsers from './components/GetUsers';
+import MyAppBar from '../controller/AppBar';
+import GetUsers from '../model/GetUsers';
 
 // Users screen
-function Users() {
+function Users(props) {
 
   // Return statement, consists of a logo, navigation drawer, and getusers component
   return (
     <div>
-        <div className="logo">
-          <img src="images/logo.png"></img>
+        <MyAppBar setTheme={props.setTheme} theme={props.theme} theme2={props.theme2}/>
+        <div className="dashboard">
+          <GetUsers />
         </div>
-        <PermanentDrawerRight />
-        <GetUsers />
     </div>
     )
 }

@@ -8,7 +8,7 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { LinearProgress } from '@mui/material';
-import AlertSnackbar from './alerts/AlertSnackbar';
+import AlertSnackbar from '../controller/AlertSnackbar';
 import Tooltip from '@mui/material/Tooltip';
 import SERVERIP from '../constants.js';
 

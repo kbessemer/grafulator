@@ -5,19 +5,18 @@
 // GitHub: https://github.com/kbessemer
 
 import React from 'react';
-import UploadFile from "./components/UploadFile";
-import PermanentDrawerRight from "./components/Drawer";
+import UploadFile from "../model/UploadFile";
+import MyAppBar from '../controller/AppBar';
 
 // Dashboard component
-function Dashboard() {
+function Dashboard(props) {
   // Return statement, consists of the logo, navigation drawer, and uploadfile component
   return (
     <div>
-      <div className="logo">
-        <img src="images/logo.png"></img>
+      <MyAppBar setTheme={props.setTheme} theme={props.theme} theme2={props.theme2}/>
+      <div className="dashboard">
+        <UploadFile />
       </div>
-      <PermanentDrawerRight />
-      <UploadFile />
     </div>
   );
 }

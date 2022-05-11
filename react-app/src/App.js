@@ -5,23 +5,24 @@
 // GitHub: https://github.com/kbessemer
 
 import React from 'react';
-import LoginForm from './components/LoginForm';
-import Dashboard from './Dashboard';
-import Users from './Users';
-import MyPassword from './MyPassword';
-import SignOut from './SignOut';
-import About from './About';
+import LoginForm from './view/LoginForm';
+import Dashboard from './view/Dashboard';
+import Users from './view/Users';
+import MyPassword from './view/MyPassword';
+import SignOut from './view/SignOut';
+import About from './view/About';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import { GlobalStyles } from "./globalStyles";
 import { lightTheme, darkTheme } from "./Theme"
-import Tooltip from '@mui/material/Tooltip';
+import { createTheme, ThemeProvider as ThemeProvider2 } from '@mui/material/styles';
 
 // Main App function
 function App() {
 
   // React hooks
   const [theme, setTheme] = React.useState('light');
+  const [theme2, setTheme2] = React.useState('false');
   const [myState, setMyState] = React.useState({});
 
   // Do this on screen load
@@ -29,19 +30,38 @@ function App() {
     var lsTheme = localStorage.getItem('theme');
     if (lsTheme === 'dark') {
       setTheme('dark');
+      setTheme2(true);
     } else if (lsTheme === 'light') {
       setTheme('light');
+      setTheme2(false);
     }
   }, [])
+
+  const rTheme = createTheme({
+    palette: {
+      text: {
+        primary: theme2 === false ? '#1d1f23' : '#7d8697',
+        secondary: theme2 === false ? '#1d1f23' : '#7d8697',
+      },
+      primary: {
+        main: theme2 === false ? '#1d1f23' : '#7d8697',
+      },
+      secondary: {
+        main: '#000',
+      },
+    },
+  });
 
   // Function for changing the theme to either dark or light
   function themeToggler() {
     if (theme === 'light') {
       setTheme('dark');
       localStorage.setItem('theme', 'dark');
+      setTheme2(true);
     } else {
       setTheme('light');
       localStorage.setItem('theme', 'light');
+      setTheme2(false);
     }
   }
 
@@ -50,25 +70,24 @@ function App() {
     <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
       <GlobalStyles/>
       <Router>
-        <div className="App">
-          <header className="App-header">
-            <div className="theme">
-              {theme === 'dark' ? <Tooltip title="Light Theme"><a onClick={themeToggler} href="#"><img src="images/light.png"/></a></Tooltip> : <Tooltip title="Dark Theme"><a onClick={themeToggler} href="#"><img className="moon" src="images/moon.png"/></a></Tooltip>}
-            </div>
+        <ThemeProvider2 theme={rTheme}>
+          <div className="App">
+            <header className="App-header">
+              <Routes>
+                <Route path="/dashboard" element={<Dashboard setTheme={themeToggler} theme={theme} theme2={theme2}/>} />
+                <Route path="/users" element={<Users setTheme={themeToggler} theme={theme} theme2={theme2}/>} />
+                <Route path="/mypassword" element={<MyPassword setTheme={themeToggler} theme={theme} theme2={theme2}/>} />
+                <Route path="/signout" element={<SignOut setTheme={themeToggler} theme={theme} theme2={theme2}/>} />
+                <Route path="/about" element={<About setTheme={themeToggler} theme={theme} theme2={theme2}/>} />
+              </Routes>
+            </header>
+          </div>
+          <div class="login-screen">
             <Routes>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/mypassword" element={<MyPassword />} />
-              <Route path="/signout" element={<SignOut />} />
-              <Route path="/about" element={<About />} />
+              <Route path="/" element={<LoginForm />} />
             </Routes>
-          </header>
-        </div>
-        <div class="login-screen">
-          <Routes>
-            <Route path="/" element={<LoginForm />} />
-          </Routes>
-        </div>
+          </div>
+        </ThemeProvider2>
       </Router>
     </ThemeProvider>
   );

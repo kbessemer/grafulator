@@ -7,7 +7,7 @@
 import React from 'react';
 import { useNavigate } from "react-router-dom";
 import { Box, LinearProgress } from '@mui/material';
-import AlertSnackbar from './alerts/AlertSnackbar';
+import AlertSnackbar from '../controller/AlertSnackbar';
 import { Buffer } from 'buffer';
 import SERVERIP from '../constants.js';
 
