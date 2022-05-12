@@ -157,7 +157,7 @@ function UploadFile(props) {
         
         <br></br>
         <div className="Graph-List">
-            <div className="Content-Header"><img class="Header-Icon" width="48px" height="48px" src="images/graph.png"></img><h3>Graph History</h3></div>
+            <div className="Content-Header"><img class="Header-Icon" width="48px" height="48px" src="images/history.png"></img><h3>Graph History</h3></div>
             <form className="formStyle8">
               <ul>
                 <li>

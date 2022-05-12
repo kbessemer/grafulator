@@ -126,25 +126,26 @@ function LoginForm() {
         {myState.UserError ? <AlertSnackbar open={true} message="User not found!" severity="error"/> : null}
         {myState.tryLogin ? <AlertSnackbar open={true} message="Trying to restore previous login session..." severity="warning"/> : null}
         {myState.autoLoginFail ? <AlertSnackbar open={true} message="Could not restore previous session! Login again" severity="error"/> : null}
-        <form className="formStyle7">
-          <ul>
-            <li>
-                <label htmlFor="username">Username</label>
-                <input type="text" name="username" maxLength="100" value={formUser} onChange={handleUser}/>
-            </li>
-            <li>
-                <label htmlFor="password">Password</label>
-                <input type="password" name="password" maxLength="100" value={formPass} onChange={handlePass}/>
-            </li>
-            <li>
-                <input type="submit" value="LOGIN" onClick={LoginPost}/>
-            </li>
-          </ul>
-          {myState.Loading ? <Box sx={{ width: '100%' }}>
-            <LinearProgress />
-          </Box> : null}
-        </form>
-
+        <div className="Login-Box">
+          <form className="formStyle7">
+            <ul>
+              <li>
+                  <label htmlFor="username">Username</label>
+                  <input type="text" name="username" maxLength="100" value={formUser} onChange={handleUser}/>
+              </li>
+              <li>
+                  <label htmlFor="password">Password</label>
+                  <input type="password" name="password" maxLength="100" value={formPass} onChange={handlePass}/>
+              </li>
+              <li>
+                  <input type="submit" value="LOGIN" onClick={LoginPost}/>
+              </li>
+            </ul>
+            {myState.Loading ? <Box sx={{ width: '100%' }}>
+              <LinearProgress />
+            </Box> : null}
+          </form>
+        </div>
       </div>
     )
   }

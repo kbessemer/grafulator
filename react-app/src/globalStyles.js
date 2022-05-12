@@ -31,6 +31,9 @@ export const GlobalStyles = createGlobalStyle`
   h3 {
 	  color: ${({ theme }) => theme.h3.color};
   }
+  .Logo-Light {
+	  color: #282c34;
+  }
   .dashboard {
 	display:flex;
 	justify-content: center;
@@ -42,6 +45,16 @@ export const GlobalStyles = createGlobalStyle`
     margin: auto;
 	width: 1000px;
 	margin-top: 50px;
+  }
+  .Login-Box {
+	border-radius: 7px;
+	background: ${({ theme }) => theme.contentBox.background};
+	width: 100%;
+	padding: 10px;
+	margin-left: 6px;
+	margin: auto;
+	box-shadow: ${({ theme }) => theme.contentBox.shadow};
+	vertical-align: top;
   }
   .Content-Row {
 	width: 100%;
@@ -174,7 +187,6 @@ export const GlobalStyles = createGlobalStyle`
 	  padding: 16px;
   }
   .formStyle7 {
-    background: ${({ theme }) => theme.formStyle7.background};
     padding: 20px;
     color: ${({ theme }) => theme.formStyle7.color};
     font-family: sans-serif,
@@ -202,7 +214,7 @@ export const GlobalStyles = createGlobalStyle`
 	  display: block;
 	  float: left;
 	  margin-top: -19px;
-	  background: ${({ theme }) => theme.formStyle7lilabel.background};
+	  background: ${({ theme }) => theme.contentBox.background};
 	  height: 20px;
 	  padding: 2px 5px 2px 5px;
 	  color: ${({ theme }) => theme.formStyle7lilabel.color};
@@ -222,7 +234,7 @@ export const GlobalStyles = createGlobalStyle`
   .formStyle7 textarea,
   .formStyle7 select 
   {
-	  background: ${({ theme }) => theme.formStyle7input.background};
+	  background: ${({ theme }) => theme.contentBox.background};
 	  color: ${({ theme }) => theme.formStyle7input.color};
 	  box-sizing: border-box;
 	  -webkit-box-sizing: border-box;

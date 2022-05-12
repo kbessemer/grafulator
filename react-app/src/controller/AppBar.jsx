@@ -255,7 +255,10 @@ export default function MyAppBar(props) {
           }}
           position="static">
           <Toolbar>
-            GRAFULATOR
+            {props.theme2
+            ? <div className="Content-Header"><img class="Header-Icon" width="48px" height="48px" src="images/graph.png"></img><h3>GRAFULATOR</h3></div>
+            : <div className="Content-Header"><img class="Header-Icon" width="48px" height="48px" src="images/graph-light.png"></img><h3 className="Logo-Light">GRAFULATOR</h3></div>
+            }
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Link style={{ textDecoration: "none" }} to="/dashboard">
