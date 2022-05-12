@@ -18,6 +18,9 @@ export const lightTheme = {
         toggleBorder: '#FFF',
         background: '#7d8697',
     },
+    h3: {
+        color: '#7d8697',
+    },
     a: {
         color: '#000',
     },
@@ -81,6 +84,11 @@ export const lightTheme = {
         background: '#7d8697',
         border: '2px dashed #2e363f',
     },
+    contentBox: {
+        background: '#e4eaf5',
+        border: '1px solid #3e424a',
+        shadow: '2px 2px #7d8697',
+    },
     dropZoneclass: {
         color: '#fff',
     },
@@ -105,6 +113,9 @@ export const darkTheme = {
         text: '#fff',
         toggleBorder: '#2e363f',
         background: '#282c34',
+    },
+    h3: {
+        color: '#7d8697',
     },
     a: {
         color: '#fff',
@@ -166,11 +177,16 @@ export const darkTheme = {
         color: '#fff',
     },
     dropZoneid: {
-        background: '#1d1f23',
+        background: '#3e424a',
         border: '2px dashed #2e363f',
     },
     dropZoneclass: {
         color: '#5994FF',
+    },
+    contentBox: {
+        background: '#1d1f23',
+        border: '1px solid #3e424a',
+        shadow: '2px 2px #3e424a',
     },
     icon: {
         filter: 'contrast(100%)',

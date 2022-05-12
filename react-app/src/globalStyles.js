@@ -28,12 +28,14 @@ export const GlobalStyles = createGlobalStyle`
     font-family: sans-serif;
     transition: all 0.50s linear;
   }
+  h3 {
+	  color: ${({ theme }) => theme.h3.color};
+  }
   .dashboard {
 	display:flex;
 	justify-content: center;
     margin: auto;
 	width: 1000px;
-	margin-top: 50px;
   }
   .about {
 	justify-content: center;
@@ -48,7 +50,103 @@ export const GlobalStyles = createGlobalStyle`
 	align-items: center;
 	margin-top: 10px;
 	margin-bottom: 15px;
-	}
+	align-items: flex-start;
+  }
+  .Content-Box-Password {
+	border-radius: 7px;
+	background: ${({ theme }) => theme.contentBox.background};
+	width: 30%;
+	padding: 10px;
+	margin-left: 6px;
+	margin: auto;
+	box-shadow: ${({ theme }) => theme.contentBox.shadow};
+	vertical-align: top;
+	display: inline-block;
+	position: absolute;
+	right: 100px;
+	top: 100px;
+  }
+  .Content-Box-Password-Uploaded {
+	border-radius: 7px;
+	background: ${({ theme }) => theme.contentBox.background};
+	width: 30%;
+	padding: 10px;
+	margin-left: 6px;
+	margin: auto;
+	box-shadow: ${({ theme }) => theme.contentBox.shadow};
+	vertical-align: top;
+	display: inline-block;
+	position: absolute;
+	right: 100px;
+	top: 1000px;
+  }
+  .Content-Box-Right {
+	border-radius: 7px;
+	background: ${({ theme }) => theme.contentBox.background};
+	width: 30%;
+	padding: 10px;
+	margin-left: 6px;
+	margin: auto;
+	box-shadow: ${({ theme }) => theme.contentBox.shadow};
+	vertical-align: top;
+	display: inline-block;
+	position: absolute;
+	right: 100px;
+	top: 575px;
+  }
+  .Content-Box-Right-Uploaded {
+	border-radius: 7px;
+	background: ${({ theme }) => theme.contentBox.background};
+	width: 30%;
+	padding: 10px;
+	margin-left: 6px;
+	margin: auto;
+	box-shadow: ${({ theme }) => theme.contentBox.shadow};
+	vertical-align: top;
+	display: inline-block;
+	position: absolute;
+	right: 100px;
+	top: 1475px;
+  }
+  .Content-Box-Left {
+	border-radius: 7px;
+	background: ${({ theme }) => theme.contentBox.background};
+	width: 50%;
+	padding: 10px;
+	margin-right: 6px;
+	margin: auto;
+	box-shadow: ${({ theme }) => theme.contentBox.shadow};
+	vertical-align: top;
+	display: inline-block;
+	position: absolute;
+	left: 100px;
+	top: 100px;
+  }
+  .Content-Box-Left-Uploaded {
+	border-radius: 7px;
+	background: ${({ theme }) => theme.contentBox.background};
+	width: 50%;
+	padding: 10px;
+	margin-right: 6px;
+	margin: auto;
+	box-shadow: ${({ theme }) => theme.contentBox.shadow};
+	vertical-align: top;
+	display: inline-block;
+	position: absolute;
+	left: 100px;
+	top: 1000px;
+  }
+  .Content-Header {
+	  display: flex;
+  }
+  .Header-Icon {
+	  padding: 5px;
+  }
+  .Graph-List {
+	width: 80%;
+	padding: 10px;
+	margin: auto;
+  }
   a {
     color: ${({ theme }) => theme.a.color};
   }
@@ -60,6 +158,9 @@ export const GlobalStyles = createGlobalStyle`
   }
   .stat-tr:hover{
 	  background: #04597c;
+  }
+  .Add-User-Button {
+	  text-align: center;
   }
   .logo {
     position: relative;
@@ -179,11 +280,11 @@ export const GlobalStyles = createGlobalStyle`
 	  color: ${({ theme }) => theme.formStyle7inputsubmithover.color};
   }
   .formStyle8 {
-    background: ${({ theme }) => theme.formStyle8.background};
+    background: ${({ theme }) => theme.contentBox.background};
     padding: 20px;
     color: ${({ theme }) => theme.formStyle8.color};
     font-family: sans-serif,
-    border-radius:2px;
+    border-radius: 2px;
     max-width:400px;
   }
   .formStyle8 ul{
@@ -194,7 +295,7 @@ export const GlobalStyles = createGlobalStyle`
   .formStyle8 li{
 	  display: block;
 	  padding: 9px;
-	  border:1px solid #1d1f22;
+	  border: ${({ theme }) => theme.contentBox.border};
 	  margin-bottom: 30px;
 	  border-radius: 3px;
   }
@@ -207,7 +308,7 @@ export const GlobalStyles = createGlobalStyle`
 	  display: block;
 	  float: left;
 	  margin-top: -19px;
-	  background: ${({ theme }) => theme.formStyle8lilabel.background};
+	  background: ${({ theme }) => theme.contentBox.background};
 	  height: 20px;
 	  padding: 2px 5px 2px 5px;
 	  color: ${({ theme }) => theme.formStyle8lilabel.color};
@@ -227,7 +328,7 @@ export const GlobalStyles = createGlobalStyle`
   .formStyle8 textarea,
   .formStyle8 select 
   {
-	  background: ${({ theme }) => theme.formStyle8input.background};
+	  background: ${({ theme }) => theme.contentBox.background};
 	  color: ${({ theme }) => theme.formStyle8input.color};
 	  box-sizing: border-box;
 	  -webkit-box-sizing: border-box;
@@ -289,6 +390,8 @@ export const GlobalStyles = createGlobalStyle`
 	  border: ${({ theme }) => theme.dropZoneid.border};
 	  width:  650px;
 	  height: 200px;
+	  margin: auto;
+	  border-radius: 7px;
   }
   .dropZone {
 	  color: ${({ theme }) => theme.dropZoneclass.color};
@@ -297,6 +400,7 @@ export const GlobalStyles = createGlobalStyle`
   }
   .icon {
 	  filter: ${({ theme }) => theme.icon.filter};
+	  padding: 5px;
   }
   th, td {
 	padding: 15px;
@@ -563,8 +667,8 @@ export const GlobalStyles = createGlobalStyle`
 	}
 	/* Dropdown Button */
 	.dropbtn {
-	background-color: #2e363f;
-	color: #D2E2FF;
+	background-color: ${({ theme }) => theme.dropZoneid.background};
+	color: #fff;
 	border: none;
 	cursor: pointer;
 	margin-right: 16px;
@@ -576,7 +680,7 @@ export const GlobalStyles = createGlobalStyle`
 
 	/* Dropdown button on hover & focus */
 	.dropbtn:hover, .dropbtn:focus {
-	background-color: #3059a2;
+	background-color: #5994FF;
 	}
 
 	/* The search field */

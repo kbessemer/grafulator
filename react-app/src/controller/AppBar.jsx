@@ -205,9 +205,6 @@ export default function MyAppBar(props) {
         open={isMenuOpen}
         onClose={handleMenuClose}
       >
-        <Link style={{ textDecoration: "none", color: "#5994FF"}} to="/mypassword">
-          <MenuItem onClick={handleMenuClose}>My Account</MenuItem>
-        </Link>
         <Link style={{ textDecoration: "none", color: "#5994FF"}} to="/signout">
           <MenuItem onClick={handleMenuClose}>Sign Out</MenuItem>
         </Link>
@@ -258,10 +255,7 @@ export default function MyAppBar(props) {
           }}
           position="static">
           <Toolbar>
-            {props.theme2 === false
-              ? <img src="images/opteev_logo.png" alt="Opteev" width="10%" height="10%"></img>
-              :<img src="images/opteev_logo_dark.png" alt="Opteev" width="10%" height="10%"></img>
-            }
+            GRAFULATOR
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Link style={{ textDecoration: "none" }} to="/dashboard">
@@ -270,13 +264,6 @@ export default function MyAppBar(props) {
                     <HomeIcon />
                   </IconButton>
                 </Tooltip>
-              </Link>
-              <Link style={{ textDecoration: "none" }} to="/users">
-                    <Tooltip title="User Management">
-                      <IconButton size="large" color="primary">
-                        <GroupIcon />
-                      </IconButton>
-                    </Tooltip>
               </Link>
               <Link style={{ textDecoration: "none" }} to="/about">
                 <Tooltip title="About">

@@ -163,7 +163,9 @@ function GetUsers() {
           {myState.DeleteSelfError ? <AlertSnackbar open={true} message="You can not delete yourself!" severity="error"/> : null}
           {myState.UserDeleted ? <AlertSnackbar open={true} message="User deleted!" severity="success"/> : null}
           {myState.UserAdded ? <AlertSnackbar open={true} message="User added!" severity="success"/> : null}
-          <button onClick={handleOpen} className="dropbtn">ADD USER</button>
+          <div className="Add-User-Button">
+            <button onClick={handleOpen} className="dropbtn">ADD USER</button>
+          </div>
           <Modal
             open={open}
             onClose={handleClose}
@@ -252,7 +254,8 @@ function GetUsers() {
 
     // Return statement for add user screen, consists of a loading indicator, search box, AddUser function, and a user table
     return (
-        <div>
+        <div className="Graph-List">
+            <div className="Content-Header"><img class="Header-Icon" width="48px" height="48px" src="images/users.png"></img><h3>User Management</h3></div>
             {myState.Loading ? <Box sx={{ width: '100%' }}>
               <LinearProgress />
             </Box> : null}

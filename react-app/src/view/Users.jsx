@@ -6,7 +6,7 @@
 
 import React from 'react';
 import MyAppBar from '../controller/AppBar';
-import GetUsers from '../model/GetUsers';
+import GetUsers from '../controller/GetUsers';
 
 // Users screen
 function Users(props) {

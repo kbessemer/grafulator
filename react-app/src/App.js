@@ -8,7 +8,7 @@ import React from 'react';
 import LoginForm from './view/LoginForm';
 import Dashboard from './view/Dashboard';
 import Users from './view/Users';
-import MyPassword from './view/MyPassword';
+import MyPassword from './controller/MyPassword';
 import SignOut from './view/SignOut';
 import About from './view/About';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
