@@ -1,5 +1,5 @@
 // GRAFULATOR
-// Last Modified: March 3, 2022
+// Last Modified: May 17, 2022
 // Authored and Developed by: Kyle Bessemer
 // LinkedIn: https://www.linkedin.com/in/kyle-bessemer-606a7a1b2/
 // GitHub: https://github.com/kbessemer
@@ -42,8 +42,8 @@ function LoginForm() {
         return
       }
       // Setup basic auth
-      let user = 'kyle';
-      let pass = 'bessemer!';
+      let user = 'us3r!@#';
+      let pass = 'jgJG0923)@lf.FKJ!@kfKJG)0#';
       let auth = 'Basic ' + new Buffer(user + ':' + pass).toString('base64')
       var url = SERVERIP + 'login';
       // Fetch request to backend

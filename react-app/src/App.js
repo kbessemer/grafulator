@@ -1,5 +1,5 @@
 // GRAFULATOR
-// Last Modified: March 3, 2022
+// Last Modified: May 17, 2022
 // Authored and Developed by: Kyle Bessemer
 // LinkedIn: https://www.linkedin.com/in/kyle-bessemer-606a7a1b2/
 // GitHub: https://github.com/kbessemer
@@ -7,8 +7,6 @@
 import React from 'react';
 import LoginForm from './view/LoginForm';
 import Dashboard from './view/Dashboard';
-import Users from './view/Users';
-import MyPassword from './controller/MyPassword';
 import SignOut from './view/SignOut';
 import About from './view/About';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
@@ -75,8 +73,6 @@ function App() {
             <header className="App-header">
               <Routes>
                 <Route path="/dashboard" element={<Dashboard setTheme={themeToggler} theme={theme} theme2={theme2}/>} />
-                <Route path="/users" element={<Users setTheme={themeToggler} theme={theme} theme2={theme2}/>} />
-                <Route path="/mypassword" element={<MyPassword setTheme={themeToggler} theme={theme} theme2={theme2}/>} />
                 <Route path="/signout" element={<SignOut setTheme={themeToggler} theme={theme} theme2={theme2}/>} />
                 <Route path="/about" element={<About setTheme={themeToggler} theme={theme} theme2={theme2}/>} />
               </Routes>

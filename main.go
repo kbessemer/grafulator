@@ -178,7 +178,7 @@ func AddToken(token string, username string) {
 	}()
 
 	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("tokens")
+	coll := client.Database("grafulator").Collection("tokens")
 
 	// Setup a result variable to check if the user already exists in the database
 	var result bson.M
@@ -243,7 +243,7 @@ func CheckToken(token string) bool {
 	}()
 
 	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("tokens")
+	coll := client.Database("grafulator").Collection("tokens")
 
 	// A variable to put the database result into
 	var result TokenStruct
@@ -301,7 +301,7 @@ func GetTokenUsername(token string) string {
 	}()
 
 	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("tokens")
+	coll := client.Database("grafulator").Collection("tokens")
 
 	// A variable to put the database result into
 	var result TokenStruct
@@ -428,7 +428,7 @@ func RouteLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}()
 
 	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("users")
+	coll := client.Database("grafulator").Collection("users")
 
 	// A variable to put the database result into
 	var result bson.M
@@ -556,7 +556,7 @@ func RouteGetUsers(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	}()
 
 	// Select the database name and collection name
-	coll := client.Database("go_project1").Collection("users")
+	coll := client.Database("grafulator").Collection("users")
 
 	// Query the database for the user list
 	cursor, err := coll.Find(context.TODO(), bson.D{})
@@ -672,7 +672,7 @@ func RouteNewUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}()
 
 	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("users")
+	coll := client.Database("grafulator").Collection("users")
 
 	// Setup a result variable to check if the user already exists in the database
 	var result bson.M
@@ -781,7 +781,7 @@ func RouteDeleteUser(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	}()
 
 	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("users")
+	coll := client.Database("grafulator").Collection("users")
 
 	// Delete the user from the database
 	filter := bson.D{{"username", username}}
@@ -887,7 +887,7 @@ func RouteMyPassword(w http.ResponseWriter, r *http.Request, p httprouter.Params
 	}()
 
 	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("users")
+	coll := client.Database("grafulator").Collection("users")
 
 	// Setup a result2 variable to check if the user already exists in the database
 	var result2 bson.M
@@ -1290,7 +1290,7 @@ func RouteUpload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}()
 
 	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("graphs")
+	coll := client.Database("grafulator").Collection("graphs")
 
 	// Last Login Time
 	now := time.Now()
@@ -1364,7 +1364,7 @@ func RouteGetGraphs(w http.ResponseWriter, r *http.Request, p httprouter.Params)
 	}()
 
 	// Select the database name and collection name
-	coll := client.Database("go_project1").Collection("graphs")
+	coll := client.Database("grafulator").Collection("graphs")
 
 	opts := options.Find().SetSort(bson.D{{"_id", -1}})
 
@@ -1483,7 +1483,7 @@ func RouteGetGraph(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	}()
 
 	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("graphs")
+	coll := client.Database("grafulator").Collection("graphs")
 
 	// Setup a result variable to check if the user already exists in the database
 	var result bson.M
@@ -1591,7 +1591,7 @@ func RouteDeleteGraph(w http.ResponseWriter, r *http.Request, p httprouter.Param
 	}()
 
 	// Set the database name and collection name
-	coll := client.Database("go_project1").Collection("graphs")
+	coll := client.Database("grafulator").Collection("graphs")
 
 	// Delete the graph from the database
 	filter := bson.D{{"_id", graphID}}
@@ -1613,13 +1613,100 @@ func RouteAutoLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params)
 	fmt.Fprintf(w, "%s\n", output)
 }
 
+func DefaultUser() {
+	// Load the env file
+	err := godotenv.Load("variables.env")
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
+	// Get Mongo DB environment variable
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		fmt.Println("You must set your 'MONGO_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/#environment-variable")
+	}
+
+	// Connect to Mongo Database
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Close the database connection at the end of the function
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	// Select the database name and collection name
+	coll := client.Database("grafulator").Collection("users")
+
+	// Query the database for the user list
+	cursor, err := coll.Find(context.TODO(), bson.D{})
+
+	type Data struct {
+		Username  string `bson:"username" json:"username"`
+		LastLogin string `bson:"LastLogin" json:"LastLogin"`
+	}
+
+	// Setup a variable for the database results
+	var data []Data
+
+	// Send all database results to data variable
+	if err = cursor.All(context.TODO(), &data); err != nil {
+		fmt.Println(err)
+	}
+
+	if len(data) == 0 {
+		fmt.Println("No users found")
+		// Setup username and password variables from request body
+		username := "admin"
+		password := "p@$Sw0rD!@#"
+
+		// Hash the password and store it in a variable
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		// Setup a result variable to check if the user already exists in the database
+		var result bson.M
+
+		// Query the database to see if the user already exists
+		err = coll.FindOne(context.TODO(), bson.D{{"username", username}}).Decode(&result)
+		// Send error response if the user exists
+		if err != mongo.ErrNoDocuments {
+			fmt.Println("User already exists")
+		}
+
+		// Insert the user into the database with the hashed password
+		doc := bson.D{{"username", username}, {"password", hashedPassword}, {"LastLogin", "Never"}}
+		_, err = coll.InsertOne(context.TODO(), doc)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+// Route: Delete Graph from database
+func RouteDefault(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	http.ServeFile(w, r, "static/index.html")
+}
+
 func main() {
 	// BasicAuth username and password
-	user := "kyle"
-	pass := "bessemer!"
+	user := "us3r!@#"
+	pass := "jgJG0923)@lf.FKJ!@kfKJG)0#"
+
+	DefaultUser()
 
 	// HTTPRouter Settings and Routes
 	router := httprouter.New()
+	router.GET("/", RouteDefault)
+	router.GET("/dashboard/", RouteDefault)
+	router.GET("/about/", RouteDefault)
+	router.GET("/signout/", RouteDefault)
 	router.POST("/login/", BasicAuth(RouteLogin, user, pass))
 	router.GET("/getusers/", JWTAuth(RouteGetUsers))
 	router.POST("/newuser/", JWTAuth(RouteNewUser))
@@ -1630,6 +1717,11 @@ func main() {
 	router.POST("/graph/", JWTAuth(RouteGetGraph))
 	router.POST("/deletegraph/", JWTAuth(RouteDeleteGraph))
 	router.GET("/autologin/", JWTAuth(RouteAutoLogin))
+
+	// if not found look for a static file
+	static := httprouter.New()
+	static.ServeFiles("/*filepath", http.Dir("static"))
+	router.NotFound = static
 
 	handler := cors.AllowAll().Handler(router)
 	fmt.Println(http.ListenAndServe(":8081", handler))

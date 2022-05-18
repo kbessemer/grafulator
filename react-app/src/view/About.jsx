@@ -1,5 +1,5 @@
 // GRAFULATOR
-// Last Modified: March 3, 2022
+// Last Modified: May 17, 2022
 // Authored and Developed by: Kyle Bessemer
 // LinkedIn: https://www.linkedin.com/in/kyle-bessemer-606a7a1b2/
 // GitHub: https://github.com/kbessemer
@@ -58,6 +58,78 @@ function About(props) {
               Any epoch format: seconds, milliseconds, or nanoseconds (1633696908886)<br/>
               Or a format like this: 2019-02-24T23:16:57.850Z<br/>
               Or: 2022/03/05 01:45:56
+              <hr></hr>
+              <h2>Custom Formulas</h2>
+              When entering a custom formula use "x" to represent the current resolution's graphed value, example: x+1 (will add 1 to every graph point for current resolution)
+              <br></br>
+              Operators can be chained together to create complex formulas
+              <table>
+              <thead>
+                <tr>
+                  <th>Operator</th>
+                  <th>Name</th>
+                  <th>Example</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>+</td>
+                  <td>Add</td>
+                  <td>x+1</td>
+                </tr>
+                <tr>
+                  <td>-</td>
+                  <td>Subtract</td>
+                  <td>x-1</td>
+                </tr>
+                <tr>
+                  <td>*</td>
+                  <td>Multiply</td>
+                  <td>x*1</td>
+                </tr>
+                <tr>
+                  <td>/</td>
+                  <td>Divide</td>
+                  <td>x/1</td>
+                </tr>
+                <tr>
+                  <td>%</td>
+                  <td>Modulus</td>
+                  <td>x%1</td>
+                </tr>
+                <tr>
+                  <td>^</td>
+                  <td>Power</td>
+                  <td>x^1</td>
+                </tr>
+                <tr>
+                  <td>sqrt</td>
+                  <td>Square Root</td>
+                  <td>sqrt(x)</td>
+                </tr>
+                <tr>
+                  <td>cos</td>
+                  <td>Cosign</td>
+                  <td>cos(x)</td>
+                </tr>
+                <tr>
+                  <td>sin</td>
+                  <td>Sine</td>
+                  <td>sin(x)</td>
+                </tr>
+                <tr>
+                  <td>tan</td>
+                  <td>Tangent</td>
+                  <td>tan(x)</td>
+                </tr>
+                <tr>
+                  <td>pi</td>
+                  <td>pi</td>
+                  <td>pi*x</td>
+                </tr>
+              </tbody>
+            </table>
+            <a href="https://mathjs.org/docs/expressions/syntax.html" target="_blank">Follow this link for full documentation on math operations</a>
             </div>
         </div>
     )
