@@ -10,3 +10,7 @@ Step 1: Create a mongodb database called "grafulator"
 Step 2: Create your environment file "variables.env" with your MONGO_URI variable (MONGO_URI=mongodb://localhost:27017/grafulator)
 
 Step 3: Customize your port and add SSL support if needed in main.go file, Go is used to serve the files over the web
+
+A default user is setup when there are no users in the database upon application launch.
+Username: admin
+Password: p@$Sw0rD!@#
