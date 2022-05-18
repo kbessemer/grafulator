@@ -1704,9 +1704,9 @@ func main() {
 	// HTTPRouter Settings and Routes
 	router := httprouter.New()
 	router.GET("/", RouteDefault)
-	router.GET("/dashboard/", RouteDefault)
-	router.GET("/about/", RouteDefault)
-	router.GET("/signout/", RouteDefault)
+	router.GET("/dashboard", RouteDefault)
+	router.GET("/about", RouteDefault)
+	router.GET("/signout", RouteDefault)
 	router.POST("/login/", BasicAuth(RouteLogin, user, pass))
 	router.GET("/getusers/", JWTAuth(RouteGetUsers))
 	router.POST("/newuser/", JWTAuth(RouteNewUser))
