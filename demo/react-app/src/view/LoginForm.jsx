@@ -86,7 +86,7 @@ function LoginForm() {
     // to see if the token is still valid, if valid the user is auto logged in
     function AutoLogin() {
       var token = localStorage.getItem('session-id');
-      if (token != null) {
+      if (token != null || token == null) {
         setMyState({Loading: true, tryLogin: true})
         var url = SERVERIP + 'autologin';
         // Fetch to backend api

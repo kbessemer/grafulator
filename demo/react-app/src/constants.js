@@ -5,6 +5,6 @@
 // GitHub: https://github.com/kbessemer
 
 // Backend address
-const SERVERIP = '/';
+const SERVERIP = 'https://grafulator.herokuapp.com/';
 
 export default SERVERIP;
