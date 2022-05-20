@@ -5,7 +5,7 @@ A Go and React app using MongoDB which is used to upload csv or xlsx files and a
 Screenshots can be found at: http://www.kylebessemer.com/portfolio/graph.html
 
 # Online Demo
-https://grafulator.herokuapp.com - If the app does not load, keep refreshing until it does!
+http://grafulator.kylebessemer.com/ - No SSL/TLS, do not upload sensitive data!
 
 # Installation
 Step 1: Create a mongodb database called "grafulator"
